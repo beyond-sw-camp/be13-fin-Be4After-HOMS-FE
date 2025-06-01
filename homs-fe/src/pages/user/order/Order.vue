@@ -30,7 +30,7 @@
             <template #cell-productQuantity="{ item }">
                 <div v-if="item && item.productQuantity === null">데이터 없음</div>
                 <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity
-                    }}</div>
+                }}</div>
                 <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
                     <input type="number"
                     <input type="number"
