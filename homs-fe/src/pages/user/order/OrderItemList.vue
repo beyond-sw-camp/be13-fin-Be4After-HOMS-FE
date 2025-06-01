@@ -10,95 +10,85 @@
                 <!-- 발주 번호 -->
                 <div class="flex flex-col gap-1 w-full md:w-auto">
                     <label class="block text-gray-700 font-semibold">주문번호</label>
+                    <label class="block text-gray-700 font-semibold">주문번호</label>
                     <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
-                    >
+                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
                         {{ orders.orderCode || "-" }}
                     </div>
                 </div>
                 <!-- 납품위치 (고정) -->
                 <div v-if="authStore.isAdmin || orders.approved" class="flex flex-col gap-1 w-full md:w-auto">
-                    <label class="block text-gray-700 font-semibold">납품위치</label>
-                    <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
-                    >
-                        {{ "서울" || "-" }}
+                    <div v-if="authStore.isAdmin || orders.approved" class="flex flex-col gap-1 w-full md:w-auto">
+                        <label class="block text-gray-700 font-semibold">납품위치</label>
+                        <div
+                            class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                            {{ "서울" || "-" }}
+                        </div>
                     </div>
-                </div>
 
-                <!-- 주문날짜 -->
-                <div class="flex flex-col gap-1 w-full md:w-auto">
-                    <label class="block text-gray-700 font-semibold">주문날짜</label>
-                    <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
-                    >
-                        {{ new Date(orders.orderDate).toLocaleDateString() || "-" }}
+                    <!-- 주문날짜 -->
+                    <div class="flex flex-col gap-1 w-full md:w-auto">
+                        <label class="block text-gray-700 font-semibold">주문날짜</label>
+                        <div
+                            class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                            {{ new Date(orders.orderDate).toLocaleDateString() || "-" }}
+                        </div>
                     </div>
-                </div>
-                <!-- 납기일 (고정) -->
-                <div v-if="authStore.isAdmin || orders.approved" class="flex flex-col gap-1 w-full md:w-auto">
-                    <label class="block text-gray-700 font-semibold">납기일</label>
-                    <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
-                    >
-                        {{ new Date(orders.dueDate).toLocaleDateString() || "-" }}
+                    <!-- 납기일 (고정) -->
+                    <div v-if="authStore.isAdmin || orders.approved" class=" flex flex-col gap-1 w-full md:w-auto">
+                        <label class="block text-gray-700 font-semibold">납기일</label>
+                        <div
+                            class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                            {{ new Date(orders.dueDate).toLocaleDateString() || "-" }}
+                        </div>
                     </div>
-                </div>
-                <!-- 발주요청 버튼 (유저) -->
-                <div v-if="!permission" class="flex items-end ml-auto">
-                    <button @click="orderRequest()" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm">발주요청</button>
+                    <!-- 발주요청 버튼 (유저) -->
+                    <div v-if="!permission" class="flex items-end ml-auto">
+                        <button @click="orderRequest()"
+                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm">발주요청</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- 검색바 -->
-        <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :buttons="actionButtons" :userRole="permission" />
-        <!-- 엑셀 업로드 -->
-        <input type="file" ref="excelFileInput" @change="excelUpload" style="display: none" accept=".xlsx, .xls" />
+            <!-- 검색바 -->
+            <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :buttons="actionButtons"
+                :userRole="permission" />
+            <!-- 엑셀 업로드 -->
+            <input type="file" ref="excelFileInput" @change="excelUpload" style="display: none" accept=".xlsx, .xls" />
 
-        <!-- 테이블 -->
-        <DynamicTable
-            :columns="userColumns"
-            :items="products"
-            :showCheckbox="true"
-            :page="currentPage"
-            :pageSize="pageSize"
-            @selected="handleSelectedItems"
-            @row-click="handleRowClick"
-            uniqueKey="productId"
-        >
-            <!-- 항목 상세 설정 -->
-            <template #cell-productQuantity="{item}">
-                <div v-if="item && item.productQuantity === null">데이터 없음</div>
-                <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity }}</div>
-                <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
-                    <input
-                        type="number"
-                        class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
-                        min="1"
-                        max="9999"
-                        v-model.number="item.productQuantity"
-                        @click.stop
-                        @mousedown.stop
-                    />
-                </div>
-                <div v-else>데이터 오류</div>
-            </template>
-            <template #actions="{item}">
-                <!-- 주문 수정 버튼 -->
-                <div v-if="!permission">
-                    <button @click="editBtn(item)" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">
-                        {{ item.isEditing ? "완료" : $t("btn.edit") }}
-                    </button>
-                    <button @click="deleteBtn(item.productId)" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        {{ $t("btn.del") }}
-                    </button>
-                </div>
-                <!-- 주문 클레임 버튼 -->
-                <div v-if="claimPermission">
-                    <button @click="claimBtn(item.productId)" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
-                </div>
-            </template>
-        </DynamicTable>
+            <!-- 테이블 -->
+            <DynamicTable :columns="userColumns" :items="products" :showCheckbox="true" :page="currentPage"
+                :pageSize="pageSize" @selected="handleSelectedItems" @row-click="handleRowClick" uniqueKey="productId">
+                <!-- 항목 상세 설정 -->
+                <template #cell-productQuantity="{ item }">
+                    <div v-if="item && item.productQuantity === null">데이터 없음</div>
+                    <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{
+                        item.productQuantity
+                        }}</div>
+                    <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
+                        <input type="number"
+                            class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
+                            min="1" max="9999" v-model.number="item.productQuantity" @click.stop @mousedown.stop />
+                    </div>
+                    <div v-else>데이터 오류</div>
+                </template>
+                <template #actions="{ item }">
+                    <div v-if="!permission">
+                        <button @click="editBtn(item)"
+                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">
+                            {{ item.isEditing ? "완료" : $t("btn.edit") }}
+                        </button>
+                        <button @click="deleteBtn(item.productId)"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                            {{ $t("btn.del") }}
+                        </button>
+                    </div>
+                    <!-- 주문 클레임 버튼 -->
+                    <div v-if="claimPermission">
+                        <button @click="claimBtn(item.productId)"
+                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
+                    </div>
+                </template>
+            </DynamicTable>
 
         <!-- 페이지 네비 -->
         <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage"> </PageNav>
