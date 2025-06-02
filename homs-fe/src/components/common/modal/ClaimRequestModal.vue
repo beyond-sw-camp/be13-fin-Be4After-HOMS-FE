@@ -1,42 +1,64 @@
 <template>
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-gray-900 opacity-60"></div>
-
-        <div class="relative bg-white shadow-lg w-full max-w-md text-center z-10 pb-5">
+        <div class="relative bg-white shadow-lg w-2xl max-w-5xl text-left z-10 pb-10">
             <div class="flex justify-end bg-slate-700 text-xl font-semibold mb-4 p-2">
                 <img :src="xmark" alt="엑스마크" class="w-5 h-5 cursor-pointer" @click="handleCancel" />
             </div>
-            <!-- 본문 -->
-            <div class="pr-8 pl-8">
-                <div class="flex">
-                    <p class="p-3 pl-0 text-gray-700 font-bold text-lg" v-html="text"></p>
+            <div class="flex flex-col px-8">
+                <div class="flex justify-between mb-5">
+                    <div class="w-1/2 pr-4">
+                        <div class="flex items-center mb-2">
+                            <label class="w-24 text-gray-700 font-semibold mr-2">주문번호</label>
+                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
+                                {{ claimData.orderCode }}
+                            </div>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <label class="w-24 text-gray-700 font-semibold mr-2">거래처</label>
+                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
+                                {{ claimData.companyName }}
+                            </div>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <label class="w-24 text-gray-700 font-semibold mr-2">상태</label>
+                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
+                                {{ claimData.status }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-1/2 pl-4">
+                        <div class="flex items-center mb-2">
+                            <label class="w-24 text-gray-700 font-semibold mr-2">품목명</label>
+                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
+                                {{ claimData.productName }}
+                            </div>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <label class="w-24 text-gray-700 font-semibold mr-2">주문수량</label>
+                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
+                                {{ claimData.quantity }}
+                            </div>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <label class="w-24 text-gray-700 font-semibold mr-2">사유</label>
+                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
+                                {{ claimData.reason }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="gap-5">
-                    <!-- 납품위치 (수정) -->
-                    <div class="flex flex-col gap-1 w-full md:w-auto">
-                        <label class="text-left block text-gray-700 font-semibold">교환 사유</label>
-                        <select v-model="selectedOption"
-                            class="select-box aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-4 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
-                            <option disabled value="">선택</option>
-                            <option v-for="option in claimOptions" :key="option.value" :value="option.value">{{
-                                option.label }}</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col gap-1 w-full md:w-auto pt-3">
-                        <label class="text-left block text-gray-700 font-semibold">상세사유</label>
-                        <textarea v-model="inputValue" placeholder="사유를 적어주세요"
-                            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            rows="4"></textarea>
-                    </div>
+
+                <div class="mb-5 px-4">
+                    <label class="block text-gray-700 font-semibold mb-1">상세 사유</label>
+                    <div class="border border-gray-300 rounded-md py-2 px-3 text-gray-800">{{ claimData.details }}</div>
                 </div>
             </div>
 
-            <!-- 버튼들 -->
-            <div class="pt-5">
-                <button @click="handleConfirm"
-                    class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">확인</button>
-                <button @click="handleCancel"
-                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">취소</button>
+            <div class="pt-5 flex justify-center">
+                <button @click="handleConfirm" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">확인</button>
+                <button @click="handleCancel" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">취소</button>
             </div>
         </div>
     </div>
@@ -48,31 +70,7 @@ import xmark from "@/assets/xmark.svg";
 
 const props = defineProps({
     visible: Boolean,
-    text: {
-        type: String,
-        default: "임의의 텍스트",
-    },
-    claimOptions: {
-        type: Array,
-        default: () => [
-            {
-                value: "DEFECTIVE",
-                label: "제품 불량",
-            },
-            {
-                value: "DAMAGE",
-                label: "제품 파손",
-            },
-            {
-                value: "DISSATISFIED",
-                label: "품질 불만족",
-            },
-            {
-                value: "OTHER",
-                label: "기타",
-            },
-        ],
-    },
+    claimData: Object,
 });
 
 // textarea의 내부 상태 관리
