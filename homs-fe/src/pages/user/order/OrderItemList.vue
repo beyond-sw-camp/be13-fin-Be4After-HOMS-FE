@@ -64,6 +64,7 @@
                     <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{
                         item.productQuantity
                         }}</div>
+                        }}</div>
                     <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
                         <input type="number"
                             class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
@@ -90,16 +91,19 @@
                 </template>
             </DynamicTable>
 
-        <!-- 페이지 네비 -->
-        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
-        </PageNav>
-        <!-- 제품 상세 모달 -->
-        <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false"></ProductDetail>
-        <!-- 신청 모달 -->
-        <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event" @confirm="orderConfirm" @cancel="showReqeustModal = false" :order-id="orderId"  />
-        <!-- 클레임 모달 -->
-        <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
-            @confirm="claimConfirm" @cancel="showClaimModal = false" />
+            <!-- 페이지 네비 -->
+            <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
+            </PageNav>
+            <!-- 제품 상세 모달 -->
+            <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false">
+            </ProductDetail>
+            <!-- 신청 모달 -->
+            <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event"
+                @confirm="orderConfirm" @cancel="showReqeustModal = false" />
+            <!-- 클레임 모달 -->
+            <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
+                @confirm="claimConfirm" @cancel="showClaimModal = false" />
+        </div>
     </div>
 </template>
 
