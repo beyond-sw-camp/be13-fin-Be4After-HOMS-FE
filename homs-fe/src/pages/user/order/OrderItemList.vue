@@ -63,7 +63,7 @@
                     <div v-if="item && item.productQuantity === null">데이터 없음</div>
                     <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{
                         item.productQuantity
-                    }}</div>
+                        }}</div>
                     <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
                         <input type="number"
                             class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
@@ -165,7 +165,7 @@ const orderRequest = async () => {
 // 클레임 요청
 const claimBtn = async (productId) => {
     selectedId.value = productId;
-    modalText.value = "교환/반품 요청 하시겠습니까?";
+    modalText.value = "교환 요청 하시겠습니까?";
     currentActionType.value = "approve";
     showClaimModal.value = true;
 };
@@ -481,7 +481,7 @@ async function orderConfirm(delivery, dueDate) {
     }
 }
 
-// 발주 신청 모달의 '확인' 버튼 클릭 시 호출되는 중앙 함수
+// 교환 신청 모달의 '확인' 버튼 클릭 시 호출되는 중앙 함수
 async function claimConfirm(option, inputValue) {
     if (currentActionType.value === "approve") {
         try {

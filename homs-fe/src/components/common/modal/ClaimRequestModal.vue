@@ -14,38 +14,36 @@
                 <div class="gap-5">
                     <!-- 납품위치 (수정) -->
                     <div class="flex flex-col gap-1 w-full md:w-auto">
-                        <label class="text-left block text-gray-700 font-semibold">교환/반품 사유</label>
-                        <select
-                            v-model="selectedOption"
-                            class="select-box aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-4 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
-                        >
+                        <label class="text-left block text-gray-700 font-semibold">교환 사유</label>
+                        <select v-model="selectedOption"
+                            class="select-box aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-4 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
                             <option disabled value="">선택</option>
-                            <option v-for="option in claimOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                            <option v-for="option in claimOptions" :key="option.value" :value="option.value">{{
+                                option.label }}</option>
                         </select>
                     </div>
                     <div class="flex flex-col gap-1 w-full md:w-auto pt-3">
                         <label class="text-left block text-gray-700 font-semibold">상세사유</label>
-                        <textarea
-                            v-model="inputValue"
-                            placeholder="사유를 적어주세요"
+                        <textarea v-model="inputValue" placeholder="사유를 적어주세요"
                             class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            rows="4"
-                        ></textarea>
+                            rows="4"></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- 버튼들 -->
             <div class="pt-5">
-                <button @click="handleConfirm" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">확인</button>
-                <button @click="handleCancel" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">취소</button>
+                <button @click="handleConfirm"
+                    class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">확인</button>
+                <button @click="handleCancel"
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">취소</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, watch} from "vue";
+import {ref} from "vue";
 import xmark from "@/assets/xmark.svg";
 
 const props = defineProps({

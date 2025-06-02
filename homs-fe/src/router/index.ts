@@ -8,7 +8,6 @@ import AdminDashBoard from "@/pages/admin/dashboard/AdminDashBoard.vue";
 import AdminAccount from "@/pages/admin/account/AdminAccount.vue";
 import BaseLayout from "@/components/common/BaseLayout.vue";
 import Setting from "@/pages/common/Setting.vue";
-import Claims from "@/pages/admin/order/Claim.vue";
 import ProductForm from "@/pages/admin/product/ProductForm.vue";
 import Categories from "@/pages/admin/product/Categories.vue";
 import Clients from "@/pages/admin/clients/Clients.vue";
@@ -87,12 +86,6 @@ const router = createRouter({
           meta: {requiresAuth: true, role: "ROLE_ADMIN"},
         },
         {
-          path: "claims",
-          name: "AdminClaims",
-          component: Claims,
-          meta: {requiresAuth: true, role: "ROLE_ADMIN"},
-        },
-        {
           path: "menu-settings",
           name: "MenuSettings",
           component: MenuSettings,
@@ -105,8 +98,8 @@ const router = createRouter({
           meta: {requiresAuth: true, role: "ROLE_ADMIN"},
         },
         {
-          path: '/admin/client/:id',
-          name: 'ClientDetail',
+          path: "/admin/client/:id",
+          name: "ClientDetail",
           component: ClientsDetail,
           meta: {requiresAuth: true, role: "ROLE_ADMIN"},
         },
@@ -224,6 +217,18 @@ const router = createRouter({
           path: "notices/:id",
           name: "UserNoticesDetail",
           component: NoticesDetail,
+          meta: {requiresAuth: false},
+        },
+        {
+          path: "claims",
+          name: "Claims",
+          component: Claims,
+          meta: {requiresAuth: false},
+        },
+        {
+          path: "claimItem/:orderId",
+          name: "ClaimItem",
+          component: ClaimItem,
           meta: {requiresAuth: false},
         },
       ],

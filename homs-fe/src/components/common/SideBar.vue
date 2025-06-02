@@ -86,7 +86,7 @@ const menuItems = ref<MenuItem[]>([
     open: false,
     children: [
       { name: '주문 목록', path: '/orders' },                           // 관리자O, 사용자O
-      { name: '클레임 목록', path: getPath('/claims'), adminOnly: true },          // 관리자O, 사용자 X
+      { name: '클레임 목록', path: '/claims',},                         // 관리자O, 사용자O
     ],
   },
   {
