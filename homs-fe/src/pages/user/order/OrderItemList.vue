@@ -54,52 +54,54 @@
         <!-- 엑셀 업로드 -->
         <input type="file" ref="excelFileInput" @change="excelUpload" style="display: none" accept=".xlsx, .xls" />
 
-        <!-- 테이블 -->
-        <DynamicTable :columns="userColumns" :items="products" :showCheckbox="true" :page="currentPage"
-            :pageSize="pageSize" @selected="handleSelectedItems" @row-click="handleRowClick" uniqueKey="productId">
-            <!-- 항목 상세 설정 -->
-            <template #cell-productQuantity="{ item }">
-                <div v-if="item && item.productQuantity === null">데이터 없음</div>
-                <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity
-                }}</div>
-                <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
-                    <input type="number"
-                        class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
-                        min="1" max="9999" v-model.number="item.productQuantity" @click.stop @mousedown.stop />
-                </div>
-                <div v-else>데이터 오류</div>
-            </template>
-            <template #actions="{ item }">
-                <!-- 주문 수정 버튼 -->
-                <div v-if="!permission">
-                    <button @click="editBtn(item)"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">
-                        {{ item.isEditing ? "완료" : $t("btn.edit") }}
-                    </button>
-                    <button @click="deleteBtn(item.productId)"
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        {{ $t("btn.del") }}
-                    </button>
-                </div>
-                <!-- 주문 클레임 버튼 -->
-                <div v-if="claimPermission">
-                    <button @click="claimBtn(item.productId)"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
-                </div>
-            </template>
-        </DynamicTable>
+            <!-- 테이블 -->
+            <DynamicTable :columns="userColumns" :items="products" :showCheckbox="true" :page="currentPage"
+                :pageSize="pageSize" @selected="handleSelectedItems" @row-click="handleRowClick" uniqueKey="productId">
+                <!-- 항목 상세 설정 -->
+                <template #cell-productQuantity="{ item }">
+                    <div v-if="item && item.productQuantity === null">데이터 없음</div>
+                    <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{
+                        item.productQuantity
+                        }}</div>
+                    <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
+                        <input type="number"
+                            class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
+                            min="1" max="9999" v-model.number="item.productQuantity" @click.stop @mousedown.stop />
+                    </div>
+                    <div v-else>데이터 오류</div>
+                </template>
+                <template #actions="{ item }">
+                    <div v-if="!permission">
+                        <button @click="editBtn(item)"
+                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">
+                            {{ item.isEditing ? "완료" : $t("btn.edit") }}
+                        </button>
+                        <button @click="deleteBtn(item.productId)"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                            {{ $t("btn.del") }}
+                        </button>
+                    </div>
+                    <!-- 주문 클레임 버튼 -->
+                    <div v-if="claimPermission">
+                        <button @click="claimBtn(item.productId)"
+                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
+                    </div>
+                </template>
+            </DynamicTable>
 
-        <!-- 페이지 네비 -->
-        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
-        </PageNav>
-        <!-- 제품 상세 모달 -->
-        <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false"></ProductDetail>
-        <!-- 신청 모달 -->
-        <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event"
-            @confirm="orderConfirm" @cancel="showReqeustModal = false" />
-        <!-- 클레임 모달 -->
-        <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
-            @confirm="claimConfirm" @cancel="showClaimModal = false" />
+            <!-- 페이지 네비 -->
+            <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
+            </PageNav>
+            <!-- 제품 상세 모달 -->
+            <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false">
+            </ProductDetail>
+            <!-- 신청 모달 -->
+            <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event"
+                @confirm="orderConfirm" @cancel="showReqeustModal = false" />
+            <!-- 클레임 모달 -->
+            <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
+                @confirm="claimConfirm" @cancel="showClaimModal = false" />
+        </div>
     </div>
 </template>
 
