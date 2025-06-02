@@ -7,37 +7,47 @@
         <!-- 검색바 -->
         <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :userRole="authStore.isAdmin" />
         <!-- 테이블 -->
-        <DynamicTable :columns="orderColumns" :items="orders" :showCheckbox="false" :page="currentPage"
-            :pageSize="pageSize" @selected="handleSelectedItems" @row-click="handleRowClick" uniqueKey="orderId">
+        <DynamicTable
+            :columns="orderColumns"
+            :items="orders"
+            :showCheckbox="false"
+            :page="currentPage"
+            :pageSize="pageSize"
+            @selected="handleSelectedItems"
+            @row-click="handleRowClick"
+            uniqueKey="orderId"
+        >
             <!-- 항목 상세 설정  DEFECTIVE, DAMAGE, DISSATISFIED, OTHER -->
-            <template #cell-reason="{ item }">
+            <template #cell-reason="{item}">
                 <p v-if="item.reason == 'DEFECTIVE'">제품 불량</p>
                 <p v-else-if="item.reason == 'DAMAGE'">제품 파손</p>
                 <p v-else-if="item.reason == 'DISSATISFIED'">품질 불만족</p>
                 <p v-else>기타</p>
             </template>
-            <template #actions="{ item }">
+            <template #actions="{item}">
                 <!-- 관리자는 상태를 설정가능 -->
                 <div v-if="authStore.isAdmin">
                     <!-- 미승인 상태 -->
                     <div v-if="item.approved === false && item.rejectReason === null">
-                        <button @click="rejectOrder(item.orderId)"
-                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">거부</button>
-                        <button @click="approveOrder(item.orderId)"
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">승인</button>
+                        <button @click="rejectOrder(item.orderId)" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">거부</button>
+                        <button @click="approveOrder(item.orderId)" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">승인</button>
                     </div>
                 </div>
 
                 <!-- 사용자는 취소할 수 있음 -->
                 <div v-else>
-                    <button v-if="item.approved === false && item.rejectReason === null"
+                    <button
+                        v-if="item.approved === false && item.rejectReason === null"
                         @click="cancleBtn(item.orderId)"
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm"
+                    >
                         취소
                     </button>
-                    <button v-else-if="item.approved === false && item.rejectReason !== null"
+                    <button
+                        v-else-if="item.approved === false && item.rejectReason !== null"
                         @click="rejectReasonView(item.orderId)"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm">
+                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm"
+                    >
                         사유
                     </button>
                 </div>
@@ -45,12 +55,9 @@
         </DynamicTable>
 
         <!-- 페이지 네비 -->
-        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
-        </PageNav>
+        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage"> </PageNav>
         <!-- 알림 모달 -->
-        <ClaimModal :visible="showModal" :text="modalText" :showTextArea="showTextAreaInput"
-            :textAreaPlaceholder="textAreaHint" @update:visible="showModal = $event" @confirm="confirmModal"
-            @cancel="showModal = false" />
+        <ClaimModal :visible="showModal" :claimData="claimData" @update:visible="showModal = $event" @confirm="confirmModal" @cancel="showModal = false" />
     </div>
 </template>
 
@@ -59,7 +66,7 @@ import apiClient from "@/api";
 import SearchBox from "@/components/common/SaerchBar.vue";
 import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
-import ClaimModal from "@/components/common/modal/ClaimResponseModal.vue";
+import ClaimModal from "@/components/common/modal/ClaimRequestModal.vue";
 import {ref, watch, onMounted} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
@@ -71,11 +78,10 @@ const {t, locale} = useI18n();
 const selectedLang = ref(locale.value === "ko" ? "KOR" : "ENG");
 
 const showModal = ref(false); // 모달 보이기
-const modalText = ref(""); // 모달 텍스트
+const claimData = ref([]); // 클레임 데이터
 const currentActionType = ref("");
 const showTextAreaInput = ref(false); // textarea를 보여줄지 말지
 const textAreaHint = ref(""); // textarea의 힌트 텍스트
-
 
 const router = useRouter();
 const route = useRoute();
@@ -99,9 +105,7 @@ const handleSearch = (searchData) => {
     fetchData();
 };
 // 검색 필터 목록
-const handleSelectOption = ref([
-    {value: "PRODUCT_NAME", label: "품목"},
-]);
+const handleSelectOption = ref([{value: "PRODUCT_NAME", label: "품목"}]);
 
 // ------- 테이블 --------
 const orderColumns = ref([
@@ -112,26 +116,6 @@ const orderColumns = ref([
 ]);
 
 const orders = ref([]);
-
-// 승인
-const approveOrder = (orderId) => {
-    currentOrderId.value = orderId;
-    modalText.value = "선택하신 주문을 승인하시겠습니까?";
-    currentActionType.value = "approve";
-    showTextAreaInput.value = false; // textarea 안보이게
-    showModal.value = true;
-};
-
-// 거절
-const rejectOrder = (orderId) => {
-    // async 제거
-    currentOrderId.value = orderId; // 처리할 주문 ID 저장
-    modalText.value = "선택하신 주문을 거절하시겠습니까?";
-    currentActionType.value = "reject";
-    showTextAreaInput.value = true; // textarea 보이게
-    textAreaHint.value = "거절 사유를 입력하세요."; // 힌트 설정
-    showModal.value = true; // 모달 열기
-};
 
 // 상태 변경 요청
 const setApprove = async (orderId, isApproved, reason) => {
@@ -216,8 +200,22 @@ const fetchData = async () => {
 };
 
 // 선택한 행에 대한 정보 처리
-const handleRowClick = (item) => {
+const handleRowClick = async (item) => {
     selectedId.value = item.claimId; // 선택된 항목 ID 업데이트
+
+    try {
+        const response = await apiClient.get(`/claim/${currentOrderId.value}?claimId=${selectedId.value}`);
+        if (response.status === 200) {
+            claimData.value = response.data.data.content[0];
+            console.log(response.data.data.content);
+            // totalPages.value = response.data.data.page.totalPages; // 총 페이지 수 할당
+        } else {
+            alert(t("errors.fetch_data_failed"));
+        }
+    } catch (err) {
+        console.error(t("errors.fetch_data_erro"), err);
+    }
+
     showModal.value = true;
 };
 
