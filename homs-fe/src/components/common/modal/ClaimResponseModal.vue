@@ -1,104 +1,98 @@
 <template>
     <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-gray-900 opacity-60"></div>
-        <div class="relative bg-white shadow-lg w-2xl max-w-5xl text-left z-10 pb-5">
+
+        <div class="relative bg-white shadow-lg w-full max-w-md text-center z-10 pb-5">
             <div class="flex justify-end bg-slate-700 text-xl font-semibold mb-4 p-2">
                 <img :src="xmark" alt="엑스마크" class="w-5 h-5 cursor-pointer" @click="handleCancel" />
             </div>
-            <div class="flex flex-col px-8 pt-5">
-                <div class="flex justify-between mb-5 pl-4.5 pr-4.5">
-                    <div class="w-1/2 pr-4">
-                        <div class="flex items-center mb-2">
-                            <label class="w-24 text-gray-700 font-semibold mr-2">주문번호</label>
-                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
-                                {{ claimData.orderCode }}
-                            </div>
-                        </div>
-                        <div class="flex items-center mb-2">
-                            <label class="w-24 text-gray-700 font-semibold mr-2">거래처</label>
-                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
-                                {{ claimData.companyName }}
-                            </div>
-                        </div>
-                        <div class="flex items-center mb-2">
-                            <label class="w-24 text-gray-700 font-semibold mr-2">상태</label>
-                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
-                                <p v-if="claimData.status === 'EXCHANGE'">반품</p>
-                                <p v-else-if="claimData.status === 'COMPLETE'">완료</p>
-                                <p v-else>취소</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="w-1/2 pl-4">
-                        <div class="flex items-center mb-2">
-                            <label class="w-24 text-gray-700 font-semibold mr-2">품목명</label>
-                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
-                                {{ claimData.productName }}
-                            </div>
-                        </div>
-                        <div class="flex items-center mb-2">
-                            <label class="w-24 text-gray-700 font-semibold mr-2">주문수량</label>
-                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
-                                {{ claimData.quantity }}
-                            </div>
-                        </div>
-                        <div class="flex items-center mb-2">
-                            <label class="w-24 text-gray-700 font-semibold mr-2">사유</label>
-                            <div class="flex-1 border border-gray-300 rounded-md py-2 px-3 text-gray-800">
-                                <p v-if="claimData.reason == 'DEFECTIVE'">제품 불량</p>
-                                <p v-else-if="claimData.reason == 'DAMAGE'">제품 파손</p>
-                                <p v-else-if="claimData.reason == 'DISSATISFIED'">품질 불만족</p>
-                                <p v-else>기타</p>
-                            </div>
-                        </div>
-                    </div>
+            <!-- 본문 -->
+            <div class="pr-8 pl-8">
+                <div class="flex">
+                    <p class="p-3 pl-0 text-gray-700 font-bold text-lg" v-html="text"></p>
                 </div>
-
-                <div class="mb-5 px-4">
-                    <label class="block text-gray-700 font-semibold mb-1">상세 사유</label>
-                    <div class="border border-gray-300 rounded-md py-2 px-3 text-gray-800">{{ claimData.details }}</div>
+                <div class="gap-5">
+                    <!-- 납품위치 (수정) -->
+                    <div class="flex flex-col gap-1 w-full md:w-auto">
+                        <label class="text-left block text-gray-700 font-semibold">교환 사유</label>
+                        <select v-model="selectedOption"
+                            class="select-box aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-4 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                            <option disabled value="">선택</option>
+                            <option v-for="option in claimOptions" :key="option.value" :value="option.value">{{
+                                option.label }}</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1 w-full md:w-auto pt-3">
+                        <label class="text-left block text-gray-700 font-semibold">상세사유</label>
+                        <textarea v-model="inputValue" placeholder="사유를 적어주세요"
+                            class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            rows="4"></textarea>
+                    </div>
                 </div>
             </div>
 
-            <div v-if="authStore.isAdmin && claimData.status === 'EXCHANGE'" class="pt-3 flex justify-center">
-                <button @click="handleConfirm(claimData.claimId)"
-                    class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">승인</button>
+            <!-- 버튼들 -->
+            <div class="pt-5">
+                <button @click="handleConfirm"
+                    class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">확인</button>
                 <button @click="handleCancel"
                     class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">취소</button>
-            </div>
-            <div v-else class="pt-3 flex justify-center">
-                <button @click="handleCancel"
-                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">확인</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import {ref} from "vue";
 import xmark from "@/assets/xmark.svg";
-import {useAuthStore} from "@/states/auth";
-
-const authStore = useAuthStore();
 
 const props = defineProps({
     visible: Boolean,
-    claimData: Object,
+    text: {
+        type: String,
+        default: "임의의 텍스트",
+    },
+    claimOptions: {
+        type: Array,
+        default: () => [
+            {
+                value: "DEFECTIVE",
+                label: "제품 불량",
+            },
+            {
+                value: "DAMAGE",
+                label: "제품 파손",
+            },
+            {
+                value: "DISSATISFIED",
+                label: "품질 불만족",
+            },
+            {
+                value: "OTHER",
+                label: "기타",
+            },
+        ],
+    },
 });
+
+// textarea의 내부 상태 관리
+const selectedOption = ref("");
+const inputValue = ref(props.inputValue);
 
 // 부모에게 보낼 값
 const emit = defineEmits(["update:visible", "confirm", "cancel"]);
 
 // 확인 버튼을 누르면 동작
-const handleConfirm = (claimId) => {
+const handleConfirm = () => {
     // onConfirm prop으로 받은 함수를 호출합니다.
-    emit("confirm", claimId);
-    console.log(claimId);
+    emit("confirm", selectedOption.value, inputValue.value);
     emit("update:visible", false); // 모달 닫기
 };
 
 // 취소 버튼 (및 X 마크)을 누르면 모달 닫고 초기화
 const handleCancel = () => {
     emit("update:visible", false);
+    selectedOption.value = "";
+    inputValue.value = "";
 };
 </script>

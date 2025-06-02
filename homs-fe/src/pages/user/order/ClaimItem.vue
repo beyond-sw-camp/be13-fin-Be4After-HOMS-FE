@@ -9,28 +9,12 @@
         <!-- 테이블 -->
         <DynamicTable :columns="orderColumns" :items="orders" :showCheckbox="false" :page="currentPage"
             :pageSize="pageSize" @selected="handleSelectedItems" @row-click="handleRowClick" uniqueKey="orderId">
-            <!-- 항목 상세 설정 -->
-            <template #cell-orderDate="{ item }">
-                {{ new Date(item.orderDate).toLocaleDateString() }}
-            </template>
-            <template #cell-dueDate="{ item }">
-                {{ new Date(item.dueDate).toLocaleDateString() }}
-            </template>
-            <template #cell-approved="{ item }">
-                <strong v-if="item.approved === true">승인</strong>
-                <strong v-else-if="item.approved === false && item.rejectReason !== null">거부</strong>
-                <strong v-else>미승인</strong>
-            </template>
-            <template #cell-productQuantity="{ item }">
-                <div v-if="item && item.productQuantity === null">데이터 없음</div>
-                <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity
-                }}</div>
-                <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
-                    <input type="number"
-                        class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
-                        min="1" max="9999" v-model.number="item.productQuantity" @click.stop @mousedown.stop />
-                </div>
-                <div v-else>데이터 오류</div>
+            <!-- 항목 상세 설정  DEFECTIVE, DAMAGE, DISSATISFIED, OTHER -->
+            <template #cell-reason="{ item }">
+                <p v-if="item.reason == 'DEFECTIVE'">제품 불량</p>
+                <p v-else-if="item.reason == 'DAMAGE'">제품 파손</p>
+                <p v-else-if="item.reason == 'DISSATISFIED'">품질 불만족</p>
+                <p v-else>기타</p>
             </template>
             <template #actions="{ item }">
                 <!-- 관리자는 상태를 설정가능 -->
@@ -64,7 +48,7 @@
         <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
         </PageNav>
         <!-- 알림 모달 -->
-        <Notify :visible="showModal" :text="modalText" :showTextArea="showTextAreaInput"
+        <ClaimModal :visible="showModal" :text="modalText" :showTextArea="showTextAreaInput"
             :textAreaPlaceholder="textAreaHint" @update:visible="showModal = $event" @confirm="confirmModal"
             @cancel="showModal = false" />
     </div>
@@ -75,7 +59,7 @@ import apiClient from "@/api";
 import SearchBox from "@/components/common/SaerchBar.vue";
 import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
-import Notify from "@/components/common/modal/NotifyModal.vue";
+import ClaimModal from "@/components/common/modal/ClaimResponseModal.vue";
 import {ref, watch, onMounted} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
@@ -101,7 +85,7 @@ const currentPage = ref(1); // 현재 페이지 상태 관리
 const totalPages = ref(0); // 총 페이지 수 상태 관리
 const pageSize = ref(10); // 페이지당 항목 수 (고정값)
 
-const selectedUserIds = ref([]); // 선택된 항목 ID
+const selectedId = ref([]); // 선택된 항목 ID
 
 const searchQuery = ref(""); // 검색어
 const selectOption = ref(""); // 검색 옵션
@@ -116,25 +100,18 @@ const handleSearch = (searchData) => {
 };
 // 검색 필터 목록
 const handleSelectOption = ref([
-    {value: "ORDER_CODE", label: "발주번호"},
-    {value: "COMPANY_NAME", label: "거래처명"},
+    {value: "PRODUCT_NAME", label: "품목"},
 ]);
 
 // ------- 테이블 --------
 const orderColumns = ref([
-    {label: "발주번호", key: "orderCode"},
-    {label: "거래처명", key: "companyName"},
-    {label: "납품장소", key: "deliveryName"},
-    {label: "요청일", key: "orderDate"},
-    {label: "납기일", key: "dueDate"},
-    {label: "승인상태", key: "approved"},
+    {label: "품목", key: "productName"},
+    {label: "사유", key: "reason"},
+    {label: "거래처", key: "companyName"},
+    {label: "주문수량", key: "quantity"},
 ]);
 
-const orders = ref([
-    {id: 1, orderCode: "H-04-23", companyName: "영광상사", deliveryName: "서울", orderDate: "25-04-02", settlementDate: "25-04-11"},
-    {id: 2, orderCode: "H-04-23", companyName: "영광상사", deliveryName: "서울", orderDate: "25-04-02", settlementDate: "25-04-11"},
-    {id: 3, orderCode: "H-04-23", companyName: "하이젠버그", deliveryName: "미국", orderDate: "25-04-02", settlementDate: "25-04-11"},
-]);
+const orders = ref([]);
 
 // 승인
 const approveOrder = (orderId) => {
@@ -223,7 +200,7 @@ const fetchData = async () => {
     window.history.replaceState({}, "", url.toString());
 
     try {
-        const response = await apiClient.get("/claim/{orderId}", {
+        const response = await apiClient.get(`/claim/${currentOrderId.value}`, {
             params: params, // 여기에 구성한 파라미터 객체를 전달합니다.
         });
         if (response.status === 200) {
@@ -240,8 +217,8 @@ const fetchData = async () => {
 
 // 선택한 행에 대한 정보 처리
 const handleRowClick = (item) => {
-    console.log("선택된 행:", item.orderId);
-    router.push({name: "OrderItemList", query: {orderId: item.orderId}});
+    selectedId.value = item.claimId; // 선택된 항목 ID 업데이트
+    showModal.value = true;
 };
 
 // 컴포넌트가 마운트될 때 데이터 가져오기
@@ -263,6 +240,8 @@ onMounted(() => {
     if (queryKeyword) {
         searchQuery.value = queryKeyword;
     }
+
+    console.log(route.params.orderId);
     fetchData();
 });
 
@@ -276,7 +255,6 @@ const handleSetPage = (page) => {
 
 // 체크박스 선택된 항목 처리
 const handleSelectedItems = (selectedIds) => {
-    selectedUserIds.value = selectedIds;
     console.log("선택된 아이템 ID:", selectedUserIds.value);
     // selectedUserIds.value.length
 };
