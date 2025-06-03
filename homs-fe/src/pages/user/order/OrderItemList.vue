@@ -63,7 +63,7 @@
                 <div v-if="item && item.productQuantity === null">데이터 없음</div>
                 <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{
                     item.productQuantity
-                    }}</div>
+                }}</div>
                 <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
                     <input type="number"
                         class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
@@ -100,8 +100,12 @@
         <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event"
             @confirm="orderConfirm" @cancel="showReqeustModal = false" />
         <!-- 클레임 모달 -->
-        <ClaimResponseModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
+        <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
             @confirm="claimConfirm" @cancel="showClaimModal = false" />
+        <!-- 알림 모달 -->
+        <ConfirmModal :visible="showConfirmModal" :text="modalText" :type="modalType" :alert="alert"
+            @update:visible="showConfirmModal = $event" @confirm="confirmModal" @canccle="confirmModalCancle">
+        </ConfirmModal>
     </div>
 </template>
 
@@ -112,7 +116,8 @@ import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
 import ProductDetail from "@/components/common/modal/ProductDetail.vue";
 import OrderRequestModal from "@/components/common/modal/OrderRequestModal.vue";
-import ClaimResponseModal from "@/components/common/modal/ClaimResponseModal.vue";
+import ClaimRequestModal from "@/components/common/modal/ClaimRequestModal.vue";
+import ConfirmModal from "@/components/common/modal/ConfirmModal.vue";
 import {ref, watch, onMounted, toRaw, onBeforeUnmount} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
@@ -141,7 +146,7 @@ const currentActionType = ref("");
 // 알람 모달 관련
 const showConfirmModal = ref(false); // 알람 모달 상태
 const modalType = ref(""); // 알람 모달 식별 타입
-const alertModal = ref(false); // 알람 모달 여부
+const alert = ref(false); // 알람 모달 여부
 
 const currentPage = ref(1); // 현재 페이지 상태 관리
 const totalPages = ref(0); // 총 페이지 수 상태 관리
@@ -247,7 +252,7 @@ const editBtn = async (item) => {
         if (item.isEditing === false) {
             await apiClient.put(`/orderitem/${orders.value.orderId}/renew/${item.productId}?quantity=${item.productQuantity}`);
             
-            alertModal.value = true;
+            alert.value = true;
             showConfirmModal.value = true;
             modalText.value = "수정되었습니다.";
         }
@@ -257,7 +262,7 @@ const editBtn = async (item) => {
 // 주문 단일 취소
 const deleteBtn = (productId) => {
     selectedId.value = productId;
-    alertModal.value = false;
+    alert.value = false;
     showConfirmModal.value = true;
     modalText.value = t("script.delete");
     modalType.value = "orderCancle";
@@ -266,11 +271,11 @@ const deleteBtn = (productId) => {
 // 주문 일괄 취소
 const deleteItems = async (selectedItems) => {
     if (selectedItems.value.length <= 0) {
-        alertModal.value = true;
+        alert.value = true;
         showConfirmModal.value = true;
         modalText.value = "항목을 선택해주세요!";
     } else {
-        alertModal.value = false;
+        alert.value = false;
         showConfirmModal.value = true;
         modalText.value = selectedUserIds.value.length + "개의 항목을 정말로 삭제하시겠습니까?";
         modalType.value = "orderCancles";   
@@ -287,12 +292,12 @@ const deletePostData = async (params) => {
                 return params.productIds.map((id) => `productIds=${id}`).join("&"); // 배열을 올바르게 직렬화
             },
         });
-        alertModal.value = true;
+        alert.value = true;
         showConfirmModal.value = true;
         modalText.value = "해당 상품의 주문이 취소되었습니다.";
         fetchData();
     } catch (error) {
-        alertModal.value = true;
+        alert.value = true;
         showConfirmModal.value = true;
         modalText.value = error;
     }
@@ -308,6 +313,14 @@ const confirmModal = async () => {
         const rowSelectedItems = toRaw(selectedUserIds.value);
         deletePostData(rowSelectedItems);
     }
+}
+
+// 알림 모달에서 취소 눌렀을 때
+const confirmModalCancle = () => {
+    console.log("취소");
+    selectedUserIds.value = [];
+    showConfirmModal.value = false;
+}
 }
 
 // 알림 모달에서 취소 눌렀을 때

@@ -80,10 +80,13 @@
         <!-- 페이지 네비 -->
         <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
         </PageNav>
-        <!-- 알림 모달 -->
+        <!-- 거부/승인 모달 -->
         <Notify :visible="showModal" :text="modalText" :showTextArea="showTextAreaInput"
-            :textAreaPlaceholder="textAreaHint" @update:visible="showModal = $event" @confirm="confirmModal"
+            :textAreaPlaceholder="textAreaHint" @update:visible="showModal = $event" @confirm="approvedConfirmModal"
             @cancel="showModal = false" />
+        <!-- 알림 모달 -->
+        <ConfirmModal :visible="showConfirmModal" :text="modalText" :type="modalType" :alert="alert"
+            @update:visible="showConfirmModal = $event" @confirm="confirmModal"></ConfirmModal>
     </div>
 </template>
 
