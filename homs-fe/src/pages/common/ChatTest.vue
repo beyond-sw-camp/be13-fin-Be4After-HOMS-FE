@@ -124,9 +124,10 @@ export default {
       return `${hh}:${mm}`
     },
     createOrEnterRoom() {
+      const baseUrl = import.meta.env.VITE_API_URL || ''
       axios
         .post(
-          `/api/chat/room?otherUserId=${this.otherUserId}`,
+          `${baseUrl}/chat/room?otherUserId=${this.otherUserId}`,
           {},
           {
             headers: {
@@ -146,8 +147,9 @@ export default {
         })
     },
     loadOldMessages() {
+      const baseUrl = import.meta.env.VITE_API_URL || ''
       axios
-        .get(`/api/chat/room/${this.roomId}/messages`, {
+        .get(`${baseUrl}/chat/room/${this.roomId}/messages`, {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`
           }
@@ -161,7 +163,7 @@ export default {
         })
     },
     connectWebSocket() {
-      const baseUrl = process.env.VITE_API_URL || ''
+      const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api\/v1$/, '')
       const socket = new SockJS(`${baseUrl}/ws-stomp`)
       this.stompClient = Stomp.over(socket)
 
@@ -194,7 +196,7 @@ export default {
         sentAt: null
       }
       this.stompClient.send(
-        '/pub/chat.sendMessage',
+        '/pub/sendMessage',
         {},
         JSON.stringify(payload)
       )
