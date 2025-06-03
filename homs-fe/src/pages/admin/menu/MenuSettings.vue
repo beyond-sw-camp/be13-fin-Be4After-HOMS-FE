@@ -192,15 +192,17 @@ const updateMenu = async (item) => {
   };
 
   try {
+    let res;
+
     if(newMenuIdSet.has(item.menuId)){
-      const res = await apiClient.post("/menu/create", newData);
+      res = await apiClient.post("/menu/create", newData);
       // 201 = 요청이 성공적으로 처리되어, 새로운 리소스가 생성됨
       if (res.status === 200 || res.status === 201){
         console.log("생성 성공");
         newMenuIdSet.delete(item.menuId);
       }
     } else {
-      const res = await apiClient.put(`/menu/update/${item.menuId}`, newData);
+      res = await apiClient.put(`/menu/update/${item.menuId}`, newData);
       if (res.status === 200 || res.status === 201){
         console.log("수정 성공");
       }
