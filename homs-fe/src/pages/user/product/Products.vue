@@ -57,8 +57,12 @@
         <!-- 페이지 네비 -->
         <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
         </PageNav>
-        <!-- 모달 -->
+        <!-- 상품 상세 모달 -->
         <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false"></ProductDetail>
+        <!-- 알림 모달 -->
+        <ConfirmModal :visible="showConfirmModal" :text="modalText" :type="modalType" :alert="alert"
+            @update:visible="showConfirmModal = $event" @confirm="confirmModal" @cancle="confirmModalCancle">
+        </ConfirmModal>
     </div>
 </template>
 
@@ -68,6 +72,7 @@ import SearchBox from "@/components/common/SaerchBar.vue";
 import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
 import ProductDetail from "@/components/common/modal/ProductDetail.vue";
+import ConfirmModal from "@/components/common/modal/ConfirmModal.vue";
 import {ref, watch, onMounted, toRaw} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
@@ -95,6 +100,12 @@ const selectedProductId = ref([]); // 선택된 항목 ID
 
 const searchQuery = ref(""); // 검색어
 const selectOption = ref(""); // 검색 옵션
+
+// 알람 모달 관련
+const showConfirmModal = ref(false); // 알람 모달 상태
+const modalText = ref(""); // 알람 모달 텍스트
+const modalType = ref(""); // 알람 모달 식별 타입
+const alert = ref(false); // 알람 모달 여부
 
 // input 요소에 접근하기 위한 ref
 const excelFileInput = ref(null);
@@ -171,53 +182,40 @@ const products = ref([
 
 // 개별 추가
 const orderBtn = async (productId, quantity) => {
-    if (confirm("상품을 주문목록에 추가하시겠습니까?")) {
-        const selectedProductIds = ref([]);
-        selectedProductIds.value.push({
-            productId: productId,
-            quantity: quantity,
-        });
-
-        if (!orderId.value) {
-            if (confirm("새로운 주문목록을 생성하시겠습니까?")) {
-                const order = await apiClient.post("/order/");
-                orderId.value = order.data.data.orderId;
-            }
-        }
-        orderItemPost(orderId, selectedProductIds.value);
-    }
+    selectedProductId.value.push({
+        productId: productId,
+        quantity: quantity,
+    });
+    alert.value = false;
+    showConfirmModal.value = true;
+    modalText.value = "상품을 주문목록에 추가하시겠습니까?";
+    modalType.value = "singleCreateOrder";
 };
 
 // 일괄 추가
 const addItems = async (selectedItem) => {
+    console.log(selectedItem);
     if (selectedItem.length <= 0) {
-        alert("항목을 선택해주세요!");
-    } else if (confirm(selectedItem.length + "개의 항목을 추가하시겠습니까?")) {
-        const selectedProductIds = ref([]);
+        alert.value = true;
+        showConfirmModal.value = true;
+        modalText.value = "항목을 선택해주세요!";
 
-        // 반복문으로 Id값을 비교하여 개수 가져와 할당
-        selectedItem.forEach((selectedItem) => {
-            const foundProduct = products.value.find((product) => product.productId === selectedItem);
-            if (foundProduct) {
-                selectedProductIds.value.push({
-                    productId: foundProduct.productId,
-                    quantity: foundProduct.quantityToOrder,
-                });
-            }
-        });
-
-        if (!orderId.value) {
-            if (confirm("새로운 주문목록을 생성하시겠습니까?")) {
-                const order = await apiClient.post("/order/");
-                orderId.value = order.data.data.orderId;
-            }
-        }
-        orderItemPost(orderId, selectedProductIds.value);
+    } else {
+        selectedProductId.value = selectedItem;
+        alert.value = false;
+        showConfirmModal.value = true;
+        modalText.value = selectedItem.length + "개의 항목을 추가하시겠습니까?";
+        modalType.value = "multiCreateOrder";
     }
 };
 
 // 주문한 아이템을 저장하는 메서드
 const orderItemPost = async (orderId, params) => {
+    if (!orderId.value) {
+        const order = await apiClient.post("/order/");
+        orderId.value = order.data.data.orderId;
+    }
+
     // toRaw를 사용하여 원본 자바스크립트 객체로 변환
     const rawParams = toRaw(params);
     await apiClient.post(`/orderitem/${orderId.value}`, rawParams);
@@ -228,11 +226,12 @@ const editBtn = (productId) => {
     router.push({name: "ProductForm", query: {productId: productId}});
 };
 
+// 삭제 버튼
 const deleteBtn = (productId) => {
-    if (confirm(t("script.delete"))) {
-        // 삭제 처리 로직 호출
-        deletePostData(productId);
-    }
+    selectedId.value = productId;
+    showConfirmModal.value = true;
+    modalText.value = "선택하신 상품을 삭제하시겠습니까?";
+    modalType.value = "delete";
 };
 
 // 상품 삭제
@@ -266,6 +265,39 @@ const deletePostData = async (productId) => {
         alert(error.response.data.message);
     }
 };
+
+// 알림 모달에서 확인이 눌러졌을때
+const confirmModal = async () => {
+    console.log("확인");
+    if (modalType.value === "delete") {
+        deletePostData(selectedId.value);
+    } else if(modalType.value === "multiCreateOrder") {
+        const selectedProductIds = ref([]);
+
+        // 반복문으로 Id값을 비교하여 개수 가져와 할당
+        selectedProductId.value.forEach((selectedItem) => {
+            console.log(selectedItem);
+            const foundProduct = products.value.find((product) => product.productId === selectedItem);
+            if (foundProduct) {
+                selectedProductIds.value.push({
+                    productId: foundProduct.productId,
+                    quantity: foundProduct.quantityToOrder,
+                });
+            }
+            orderItemPost(orderId, selectedProductIds.value);
+        });
+    } else if (modalType.value === "singleCreateOrder") {
+        orderItemPost(orderId, selectedProductId.value);
+    }
+}
+
+// 알림 모달에서 취소 눌렀을 때
+const confirmModalCancle = () => {
+    console.log("취소");
+    selectedProductId.value = [];
+    selectedId.value = null;
+    showConfirmModal.value = false;
+}
 
 // 엑셀 다운로드
 const excelDown = async () => {

@@ -63,10 +63,13 @@
         <!-- 페이지 네비 -->
         <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
         </PageNav>
-        <!-- 알림 모달 -->
+        <!-- 거부/승인 모달 -->
         <Notify :visible="showModal" :text="modalText" :showTextArea="showTextAreaInput"
-            :textAreaPlaceholder="textAreaHint" @update:visible="showModal = $event" @confirm="confirmModal"
+            :textAreaPlaceholder="textAreaHint" @update:visible="showModal = $event" @confirm="approvedConfirmModal"
             @cancel="showModal = false" />
+        <!-- 알림 모달 -->
+        <ConfirmModal :visible="showConfirmModal" :text="modalText" :type="modalType" :alert="alert"
+            @update:visible="showConfirmModal = $event" @confirm="confirmModal"></ConfirmModal>
     </div>
 </template>
 
@@ -76,6 +79,7 @@ import SearchBox from "@/components/common/SaerchBar.vue";
 import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
 import Notify from "@/components/common/modal/NotifyModal.vue";
+import ConfirmModal from "@/components/common/modal/ConfirmModal.vue";
 import {ref, watch, onMounted} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
@@ -105,6 +109,11 @@ const selectedUserIds = ref([]); // 선택된 항목 ID
 
 const searchQuery = ref(""); // 검색어
 const selectOption = ref(""); // 검색 옵션
+
+// 알람 모달 관련
+const showConfirmModal = ref(false); // 알람 모달 상태
+const modalType = ref(""); // 알람 모달 식별 타입
+const alert = ref(false); // 알람 모달 여부
 
 // ------- 검색바 --------
 const handleSearch = (searchData) => {
@@ -175,14 +184,11 @@ const setApprove = async (orderId, isApproved, reason) => {
 
 // 취소
 const cancleBtn = async (orderId) => {
-    if (confirm("주문을 취소하시겠습니까?")) {
-        try {
-            await apiClient.delete(`/order/${orderId}`);
-            fetchData();
-        } catch (error) {
-            alert(error.response.data.message);
-        }
-    }
+    currentOrderId.value = orderId;
+    alert.value = false;
+    showConfirmModal.value = true;
+    modalText.value = "주문을 취소하시겠습니까?";
+    modalType.value = "orderCancle";
 };
 
 // 사유 확인
@@ -190,14 +196,41 @@ const rejectReasonView = async (orderId) => {
     try {
         const response = await apiClient.get(`/order/${orderId}`);
         if (response.status === 200) {
-            alert(response.data.data.rejectReason);
+            alert.value = true;
+            showConfirmModal.value = true;
+            modalText.value = `
+                <strong style="font-size: 1.1em; color: #333;">상세 사유</strong>
+                <p style="margin-top: 8px; margin-bottom: 0; line-height: 1.5;">${response.data.data.rejectReason}</p>
+            `;
+            
         } else {
-            alert(t("errors.fetch_data_failed"));
+            alert.value = true;
+            showConfirmModal.value = true;
+            modalText.value = t("errors.fetch_data_failed");
         }
     } catch (err) {
         console.error(t("errors.fetch_data_erro"), err);
     }
 };
+
+// 알림 모달에서 확인이 눌러졌을때
+const confirmModal = async () => {
+    const orderId = currentOrderId.value;
+    if (modalType.value === "orderCancle") {
+        try {
+            await apiClient.delete(`/order/${orderId}`);
+
+            alert.value = true;
+            showConfirmModal.value = true;
+            modalText.value = "주문이 취소되었습니다.";
+
+            fetchData();
+        } catch (error) {
+            alert(error.response.data.message);
+        }
+    }
+}
+
 
 // 데이터 가져오는 함수
 const fetchData = async () => {
@@ -286,7 +319,7 @@ const handleSelectedItems = (selectedIds) => {
 };
 
 // Notify 모달의 '확인' 버튼 클릭 시 호출되는 중앙 함수
-function confirmModal(inputValue) {
+function approvedConfirmModal(inputValue) {
     if (currentActionType.value === "approve") {
         setApprove(currentOrderId.value, true, null);
     } else if (currentActionType.value === "reject") {

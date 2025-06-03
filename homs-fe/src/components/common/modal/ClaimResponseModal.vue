@@ -69,14 +69,13 @@
             </div>
             <div v-else class="pt-3 flex justify-center">
                 <button @click="handleCancel"
-                    class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">확인</button>
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">확인</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref} from "vue";
 import xmark from "@/assets/xmark.svg";
 import {useAuthStore} from "@/states/auth";
 
