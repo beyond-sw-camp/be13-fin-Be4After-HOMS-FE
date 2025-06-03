@@ -38,10 +38,7 @@
       </template>
     </DynamicTable>
 
-    <!-- 페이지 네비 -->
-    <!-- <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage"></PageNav> -->
-
-    <DeliveryAddressModal :visible="showCheckModal" :data="selectedDelivery" :companyid="selectedCompanyId" @confirm="confirmCheckTaxInvoice" @cancel="cancelCheckTaxInvoice"></DeliveryAddressModal>
+    <DeliveryAddressModal :visible="showCheckModal" :data="selectedDelivery" :selectedCompanyId="selectedCompanyId" @confirm="confirmCheckTaxInvoice" @cancel="cancelCheckTaxInvoice"></DeliveryAddressModal>
   </div>
 </template>
 
@@ -55,8 +52,10 @@ import { useAuthStore } from '@/states/auth';
 import DeliveryAddressModal from '@/components/common/modal/DeliveryAddressModal.vue';
 
 const { t } = useI18n()
+const authstore = useAuthStore();
 
 const delivery = ref([]);
+const selectedCompanyId = ref(null);
 const showCheckModal = ref(false);
 const selectedDelivery = ref(null); // 선택된 항목
 
@@ -107,7 +106,6 @@ const deleteClick = async (addressId) => {
   try {
     const res = await apiClient.delete(`/deliveryAdd/delete/${addressId}`);
     if (res.status === 200){
-      console.log("삭제 성공");
     }
     fetchData();
   } catch (error) {
@@ -123,24 +121,39 @@ const deliveryColumns = [
   { label: "", key: "button" },
 ];
 
-// API 호출
-const fetchData = async () => {
+// API 호출 (companyId 용 한번만 태움 댐)
+const fetchData_company = async () => {
   try {
-    const res = await apiClient.get("/deliveryAdd/");
+    const res = await apiClient.get(`/admin/user/${authstore.user.userId}`);
 
     if (res.status === 200) {
-      delivery.value = res.data.data;
-      
-      console.log(delivery.value);
+      selectedCompanyId.value = res.data.data.companyId;
     }
   } catch (e) {
     console.error(e);
   }
 };
 
+// API 호출
+const fetchData = async () => {
+  if(selectedCompanyId.value != null)
+  {
+    try {
+      const res = await apiClient.get(`deliveryAdd/${selectedCompanyId.value}`);
+
+      if (res.status === 200) {
+        delivery.value = res.data.data;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+};
+
 // 초기 데이터 로딩
-onMounted(() => {
-  fetchData();
+onMounted(async () => {
+  await fetchData_company();  // companyId 먼저 불러옴
+  await fetchData();          // companyId가 설정된 후에 호출
 });
 </script>
 

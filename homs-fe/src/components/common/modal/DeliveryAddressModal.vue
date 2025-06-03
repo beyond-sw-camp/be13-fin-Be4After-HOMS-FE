@@ -56,7 +56,7 @@ import apiClient from "@/api";
 const props = defineProps({
   visible: Boolean,
   data: Object,
-  selectedCompanyId: Int32Array
+  selectedCompanyId: Number
 });
 
 // 동적 타이틀
@@ -72,6 +72,9 @@ const onClick = async () => {
     companyId: props.selectedCompanyId
   };
 
+  console.log(newData);
+  console.log(props.selectedCompanyId);
+
   try {
     let res;
 
@@ -81,7 +84,6 @@ const onClick = async () => {
       if (res.status === 200 || res.status === 201) {
         console.log("배송지 수정 성공");
         emit('confirm');
-
       }
     } else {
       // 배송지 추가
