@@ -129,6 +129,7 @@ const handleSelectOption = ref([
     {value: "productDomain", label: "분야"},
     {value: "productCategory", label: "분류"},
 ]);
+
 // 액션 버튼 정의
 const actionButtons = ref([
     // 이 버튼은 'admin'만 볼 수 있음
@@ -139,10 +140,16 @@ const actionButtons = ref([
         allowedRoles: ["admin"],
     },
     {
-        label: "전체목록",
+        label: "상품목록",
         color: "bg-gray-500 hover:bg-gray-700",
-        action: () => excelDown(),
+        action: () => excelDown("ALL"),
         allowedRoles: ["admin", "user"],
+    },
+    {
+        label: "엑셀양식",
+        color: "bg-gray-500 hover:bg-gray-700",
+        action: () => excelDown("TEMPLATE"),
+        allowedRoles: ["user"],
     },
     {
         label: "엑셀주문",
@@ -154,12 +161,6 @@ const actionButtons = ref([
         label: "일괄추가",
         color: "bg-orange-500 hover:bg-orange-700",
         action: () => addItems(selectedProductId.value),
-        allowedRoles: ["user"],
-    },
-    {
-        label: "엑셀다운",
-        color: "bg-gray-500 hover:bg-gray-700",
-        action: () => orderListBtn(),
         allowedRoles: ["user"],
     },
 ]);
@@ -300,9 +301,9 @@ const confirmModalCancle = () => {
 }
 
 // 엑셀 다운로드
-const excelDown = async () => {
+const excelDown = async (type) => {
     try {
-        const response = await apiClient.get(`/excel/download?type=ALL`, {
+        const response = await apiClient.get(`/excel/download?type=${type}`, {
             responseType: "blob",
         });
 
