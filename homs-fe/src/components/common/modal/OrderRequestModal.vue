@@ -43,6 +43,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import xmark from '@/assets/xmark.svg'
+import apiClient from '@/api';
 
 const props = defineProps({
   visible: Boolean,
@@ -53,6 +54,10 @@ const props = defineProps({
   deliveryOptions: {
     type: Array,
     default: () => [{ value: '서울', label: '서울' }],
+  },
+  orderId: {
+    type: Number,
+    required: true
   }
 })
 
@@ -72,8 +77,28 @@ const emit = defineEmits(['update:visible', 'confirm', 'cancel'])
 const handleConfirm = () => {
   // onConfirm prop으로 받은 함수를 호출합니다.
   const dueDate = `${selectedDueDate.value}T00:00:00`;
+
+  const now = new Date(); 
+  const isoDate = now.toISOString(); 
+
+  const taxInvoice = `taxInvoice${props.orderId}`;
+
+  const payload = {
+    orderId: props.orderId,
+    settlementDate: isoDate,
+    texInvoice: taxInvoice,
+    isSettled: "UNSETTLED",
+    };
+
   emit('confirm', selectedDelivery.value, dueDate);
   emit('update:visible', false); // 모달 닫기
+  console.log("orderRequst에서의 orderId",props.orderId)
+
+  const response = apiClient.post(`settlement/${props.orderId}`,payload)
+  console.log("settlementDate", payload.settlementDate)
+  console.log("payload", payload)
+  console.log('정산 요청 성공:', response.data);
+  
 }
 
 // 취소 버튼 (및 X 마크)을 누르면 모달 닫고 초기화

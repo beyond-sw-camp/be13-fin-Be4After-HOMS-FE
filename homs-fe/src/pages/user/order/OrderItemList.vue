@@ -105,7 +105,7 @@
         <!-- 제품 상세 모달 -->
         <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false"></ProductDetail>
         <!-- 신청 모달 -->
-        <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event" @confirm="orderConfirm" @cancel="showReqeustModal = false" />
+        <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event" @confirm="orderConfirm" @cancel="showReqeustModal = false" :order-id="orderId"  />
         <!-- 클레임 모달 -->
         <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event" @confirm="claimConfirm" @cancel="showClaimModal = false" />
     </div>
@@ -169,6 +169,7 @@ const orderRequest = async () => {
     modalText.value = "납품위치와 납기일을 지정해주세요";
     currentActionType.value = "approve";
     showReqeustModal.value = true;
+    console.log("orderId", orderId.value)
 };
 
 // 클레임 요청
@@ -237,7 +238,7 @@ const products = ref([
     {id: 4, categroy: "PO", categroy2: "LDPE", productName: "303", productMinQuantity: "10", inven: "9999"},
 ]);
 
-const orders = ref([]);
+const orders = ref([{}]);
 
 // 수정 버튼
 const editBtn = async (item) => {

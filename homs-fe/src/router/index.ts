@@ -39,7 +39,7 @@ import ContractForm from "@/pages/admin/clients/ContractForm.vue";
 import PageNotFound from "@/pages/common/PageNotFound.vue";
 
 // 채팅테스트용
-import ChatTest from '@/pages/ChatTest.vue'
+import ChatTest from '@/pages/common/ChatTest.vue'
 
 
 

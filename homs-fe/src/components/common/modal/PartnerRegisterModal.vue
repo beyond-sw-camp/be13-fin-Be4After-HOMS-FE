@@ -64,7 +64,7 @@
         </div>
 
         <div class="flex gap-10 justify-center mt-5">
-            <button @click="showSuccess=true" class="px-6 py-3 w-1/6 bg-orange-600 text-white font-bold  hover:bg-orange-700 transition">
+            <button @click="onSave" class="px-6 py-3 w-1/6 bg-orange-600 text-white font-bold  hover:bg-orange-700 transition">
                 저장
             </button>
             <button @click="onClose" class="px-6 py-3 w-1/6 bg-slate-500 text-white font-bold hover:bg-slate-600 transition">
@@ -102,6 +102,16 @@
     managerName:'',
     managerEmail:'',
   })
+
+  function onSave() {
+    showSuccess.value=true
+    console.log("form", form)
+    console.log("form.vaue", form.value)
+    console.log("form.email", form.managerEmail)
+
+
+
+  }
 
   // 파트너사 등록 모달만 닫는기능
   function onClose() {

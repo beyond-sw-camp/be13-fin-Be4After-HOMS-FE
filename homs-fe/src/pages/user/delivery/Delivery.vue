@@ -1,7 +1,11 @@
 <template>
-    <div>
-        이곳은 배송 관련 페이지 입니다
-    </div>
+    <!-- 제목 -->
+        <div class="text-3xl px-3 py-3">
+        <span>배송 현황</span>
+        </div>
+        <!-- 검색바 -->
+        <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :buttons="actionButtons"
+        :userRole="currentUserRole" />
 </template>
 
 <script setup>
