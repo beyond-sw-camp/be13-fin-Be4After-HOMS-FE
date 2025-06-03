@@ -18,7 +18,7 @@ import Login from "@/pages/common/login/Login.vue";
 import AdminSettlements from "@/pages/admin/settlement/Settlements.vue";
 import AccountDetail from "@/pages/admin/account/AccountDetail.vue";
 import AdminDelivery from "@/pages/admin/delivery/AdminDelivery.vue";
-import AdminDeliveryAddress from "@/pages/admin/delivery/AdminDeliveryAddress.vue";
+import AdminDeliveryAddress from "@/pages/admin/delivery/AdminDelivery.vue";
 
 // 유저 관련
 import UserDashBoard from "@/pages/user/dashboard/UserDashBoard.vue";
@@ -33,6 +33,8 @@ import NoticesDetail from "@/pages/user/notice/NoticesDetail.vue";
 import AdminNoticesForm from "@/pages/admin/notice/NoticesForm.vue";
 import DeliveryAddress from "@/pages/user/delivery/DeliveryAddress.vue";
 import ContractForm from "@/pages/admin/clients/ContractForm.vue";
+import Claims from "@/pages/user/order/Claims.vue";
+import ClaimItem from "@/pages/user/order/ClaimItem.vue";
 
 // 에러 관련
 import PageNotFound from "@/pages/common/PageNotFound.vue";
