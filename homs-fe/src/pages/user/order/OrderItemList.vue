@@ -63,7 +63,7 @@
                 <div v-if="item && item.productQuantity === null">데이터 없음</div>
                 <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{
                     item.productQuantity
-                }}</div>
+                    }}</div>
                 <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
                     <input type="number"
                         class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
@@ -100,7 +100,7 @@
         <OrderRequestModal :visible="showReqeustModal" :text="modalText" @update:visible="showReqeustModal = $event"
             @confirm="orderConfirm" @cancel="showReqeustModal = false" />
         <!-- 클레임 모달 -->
-        <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
+        <ClaimResponseModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
             @confirm="claimConfirm" @cancel="showClaimModal = false" />
     </div>
 </template>
@@ -112,7 +112,7 @@ import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
 import ProductDetail from "@/components/common/modal/ProductDetail.vue";
 import OrderRequestModal from "@/components/common/modal/OrderRequestModal.vue";
-import ClaimRequestModal from "@/components/common/modal/ClaimRequestModal.vue";
+import ClaimResponseModal from "@/components/common/modal/ClaimResponseModal.vue";
 import {ref, watch, onMounted, toRaw, onBeforeUnmount} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
