@@ -9,7 +9,8 @@
                 <div class="flex flex-col gap-1 w-full md:w-auto">
                     <label class="block text-gray-700 font-semibold">주문번호</label>
                     <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
+                    >
                         {{ orders.orderCode || "-" }}
                     </div>
                 </div>
@@ -17,8 +18,10 @@
                 <div v-if="orders.deliveryName || orders.approved" class="flex flex-col gap-1 w-full md:w-auto">
                     <div class="flex flex-col gap-1 w-full md:w-auto">
                         <label class="block text-gray-700 font-semibold">납품위치</label>
-                        <div class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
-                            @click="fetchDetailData()">
+                        <div
+                            class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
+                            @click="fetchDetailData()"
+                        >
                             {{ orders.deliveryName || "-" }}
                         </div>
                     </div>
@@ -28,7 +31,8 @@
                 <div class="flex flex-col gap-1 w-full md:w-auto">
                     <label class="block text-gray-700 font-semibold">주문날짜</label>
                     <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
+                    >
                         {{ new Date(orders.orderDate).toLocaleDateString() || "-" }}
                     </div>
                 </div>
@@ -36,55 +40,68 @@
                 <div v-if="orders.dueDate || orders.approved" class="flex flex-col gap-1 w-full md:w-auto">
                     <label class="block text-gray-700 font-semibold">납기일</label>
                     <div
-                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer">
+                        class="w-fit aria-disabled:cursor-not-allowed outline-none focus:outline-none text-stone-800 dark:text-black placeholder:text-stone-600/60 ring-transparent border border-stone-200 transition-all ease-in disabled:opacity-50 disabled:pointer-events-none select-none text-sm py-2 pr-2 pl-2.5 ring shadow-sm bg-white rounded-lg duration-100 hover:border-stone-300 hover:ring-none focus:border-stone-400 focus:ring-none peer"
+                    >
                         {{ new Date(orders.dueDate).toLocaleDateString() || "-" }}
                     </div>
                 </div>
                 <!-- 주문요청 버튼 (유저) -->
                 <div v-if="!permission" class="flex items-end ml-auto">
-                    <button @click="orderRequest()"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm">주문요청</button>
+                    <button @click="orderRequest()" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm">주문요청</button>
                 </div>
             </div>
         </div>
         <!-- 검색바 -->
-        <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :buttons="actionButtons"
-            :userRole="permission" />
+        <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :buttons="actionButtons" :userRole="permission" />
         <!-- 엑셀 업로드 -->
         <input type="file" ref="excelFileInput" @change="excelUpload" style="display: none" accept=".xlsx, .xls" />
 
         <!-- 테이블 -->
-        <DynamicTable :columns="userColumns" :items="products" :showCheckbox="true" :page="currentPage"
-            :pageSize="pageSize" :isLoading="isTableLoading" @selected="handleSelectedItems" @row-click="handleRowClick"
-            uniqueKey="productId">
+        <DynamicTable
+            :columns="userColumns"
+            :items="products"
+            :showCheckbox="true"
+            :page="currentPage"
+            :pageSize="pageSize"
+            :isLoading="isTableLoading"
+            @selected="handleSelectedItems"
+            @row-click="handleRowClick"
+            uniqueKey="productId"
+        >
             <!-- 항목 상세 설정 -->
-            <template #cell-productQuantity="{ item }">
+            <template #cell-productQuantity="{item}">
                 <div v-if="item && item.productQuantity === null">데이터 없음</div>
-                <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity
-                }}</div>
+                <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity }}</div>
                 <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
-                    <input type="number"
+                    <input
+                        type="number"
                         class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
-                        min="1" max="9999" v-model.number="item.productQuantity" @click.stop @mousedown.stop />
+                        min="1"
+                        max="9999"
+                        v-model.number="item.productQuantity"
+                        @click.stop
+                        @mousedown.stop
+                    />
                 </div>
                 <div v-else>데이터 오류</div>
             </template>
-            <template #actions="{ item }">
+            <template #actions="{item}">
                 <div v-if="!permission">
-                    <button @click="editBtn(item)"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">
+                    <button @click="editBtn(item)" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">
                         {{ item.isEditing ? "완료" : $t("btn.edit") }}
                     </button>
-                    <button @click="deleteBtn(item.productId)"
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                    <button @click="deleteBtn(item.productId)" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
                         {{ $t("btn.del") }}
                     </button>
                 </div>
                 <!-- 주문 클레임 버튼 -->
                 <div v-if="claimPermission && !item.claimStatus">
                     <!-- 클레임을 넣기 전 -->
-                    <button @click="claimBtn(item)"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
+                    <button @click="claimBtn(item)" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
+                </div>
+                <div v-else-if="item.claimStatus">
+                    <!-- 클레임을 넣은 후 -->
+                    <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">교환</button>
                 </div>
                 <div v-else-if="item.claimStatus">
                     <!-- 클레임을 넣은 후 -->
@@ -95,19 +112,30 @@
         </DynamicTable>
 
         <!-- 페이지 네비 -->
-        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
-        </PageNav>
+        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage"> </PageNav>
         <!-- 제품 상세 모달 -->
         <ProductDetail :visible="showModal" :productId="Number(selectedId)" @close="showModal = false"> </ProductDetail>
         <!-- 신청 모달 -->
-        <OrderRequestModal :visible="showReqeustModal" :text="modalText" :deliveryOptions="address"
-            @update:visible="showReqeustModal = $event" @confirm="orderConfirm" @cancel="showReqeustModal = false" />
+        <OrderRequestModal
+            :visible="showReqeustModal"
+            :text="modalText"
+            :deliveryOptions="address"
+            @update:visible="showReqeustModal = $event"
+            @confirm="orderConfirm"
+            @cancel="showReqeustModal = false"
+        />
         <!-- 클레임 모달 -->
-        <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event"
-            @confirm="claimConfirm" @cancel="showClaimModal = false" />
+        <ClaimRequestModal :visible="showClaimModal" :text="modalText" @update:visible="showClaimModal = $event" @confirm="claimConfirm" @cancel="showClaimModal = false" />
         <!-- 알림 모달 -->
-        <ConfirmModal :visible="showConfirmModal" :text="modalText" :type="modalType" :alert="alertModal"
-            @update:visible="showConfirmModal = $event" @confirm="confirmModal" @canccle="confirmModalCancle">
+        <ConfirmModal
+            :visible="showConfirmModal"
+            :text="modalText"
+            :type="modalType"
+            :alert="alertModal"
+            @update:visible="showConfirmModal = $event"
+            @confirm="confirmModal"
+            @canccle="confirmModalCancle"
+        >
         </ConfirmModal>
         <!-- 배송 상세 모달 -->
         <DeliveryAddressModal :visible="showCheckModal" :data="selectedDelivery" @cancel="cancelCheckTaxInvoice" />
@@ -134,6 +162,8 @@ import {downloadBlob, getFilenameFromHeaders} from "@/utils/fileDownloader";
 const authStore = useAuthStore();
 const permission = ref(false);
 const claimPermission = ref(false);
+
+const selectedProduct = ref(null);
 
 const selectedProduct = ref(null);
 
@@ -196,7 +226,6 @@ const claimBtn = async (product) => {
     selectedProduct.value = product;
     console.log(product.productId);
     console.log(selectedProduct.value);
-    console.log(selectedProduct.value.productId);
     selectedId.value = product.productId;
     modalText.value = "교환 요청 하시겠습니까?";
     currentActionType.value = "approve";
@@ -226,12 +255,16 @@ const actionButtons = ref([
         allowedRoles: ["admin", "user"],
         iconSvg:
             '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256"><g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M28.8125,0.03125l-28,5.3125c-0.47266,0.08984 -0.8125,0.51953 -0.8125,1v37.3125c0,0.48047 0.33984,0.91016 0.8125,1l28,5.3125c0.0625,0.01172 0.125,0.03125 0.1875,0.03125c0.23047,0 0.44531,-0.07031 0.625,-0.21875c0.23047,-0.19141 0.375,-0.48437 0.375,-0.78125v-48c0,-0.29687 -0.14453,-0.58984 -0.375,-0.78125c-0.23047,-0.19141 -0.51953,-0.24219 -0.8125,-0.1875zM32,6v7h2v2h-2v5h2v2h-2v5h2v2h-2v6h2v2h-2v7h15c1.10156,0 2,-0.89844 2,-2v-34c0,-1.10156 -0.89844,-2 -2,-2zM36,13h8v2h-8zM6.6875,15.6875h5.125l2.6875,5.59375c0.21094,0.44141 0.39844,0.98438 0.5625,1.59375h0.03125c0.10547,-0.36328 0.30859,-0.93359 0.59375,-1.65625l2.96875,-5.53125h4.6875l-5.59375,9.25l5.75,9.4375h-4.96875l-3.25,-6.09375c-0.12109,-0.22656 -0.24609,-0.64453 -0.375,-1.25h-0.03125c-0.0625,0.28516 -0.21094,0.73047 -0.4375,1.3125l-3.25,6.03125h-5l5.96875,-9.34375zM36,20h8v2h-8zM36,27h8v2h-8zM36,35h8v2h-8z"></path></g></g></svg>',
+        iconSvg:
+            '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256"><g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M28.8125,0.03125l-28,5.3125c-0.47266,0.08984 -0.8125,0.51953 -0.8125,1v37.3125c0,0.48047 0.33984,0.91016 0.8125,1l28,5.3125c0.0625,0.01172 0.125,0.03125 0.1875,0.03125c0.23047,0 0.44531,-0.07031 0.625,-0.21875c0.23047,-0.19141 0.375,-0.48437 0.375,-0.78125v-48c0,-0.29687 -0.14453,-0.58984 -0.375,-0.78125c-0.23047,-0.19141 -0.51953,-0.24219 -0.8125,-0.1875zM32,6v7h2v2h-2v5h2v2h-2v5h2v2h-2v6h2v2h-2v7h15c1.10156,0 2,-0.89844 2,-2v-34c0,-1.10156 -0.89844,-2 -2,-2zM36,13h8v2h-8zM6.6875,15.6875h5.125l2.6875,5.59375c0.21094,0.44141 0.39844,0.98438 0.5625,1.59375h0.03125c0.10547,-0.36328 0.30859,-0.93359 0.59375,-1.65625l2.96875,-5.53125h4.6875l-5.59375,9.25l5.75,9.4375h-4.96875l-3.25,-6.09375c-0.12109,-0.22656 -0.24609,-0.64453 -0.375,-1.25h-0.03125c-0.0625,0.28516 -0.21094,0.73047 -0.4375,1.3125l-3.25,6.03125h-5l5.96875,-9.34375zM36,20h8v2h-8zM36,27h8v2h-8zM36,35h8v2h-8z"></path></g></g></svg>',
     },
     {
         label: "엑셀주문",
         color: "bg-green-600 hover:bg-green-700",
         action: () => handleExcelUploadClick(),
         allowedRoles: ["user"],
+        iconSvg:
+            '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256"><g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M28.8125,0.03125l-28,5.3125c-0.47266,0.08984 -0.8125,0.51953 -0.8125,1v37.3125c0,0.48047 0.33984,0.91016 0.8125,1l28,5.3125c0.0625,0.01172 0.125,0.03125 0.1875,0.03125c0.23047,0 0.44531,-0.07031 0.625,-0.21875c0.23047,-0.19141 0.375,-0.48437 0.375,-0.78125v-48c0,-0.29687 -0.14453,-0.58984 -0.375,-0.78125c-0.23047,-0.19141 -0.51953,-0.24219 -0.8125,-0.1875zM32,6v7h2v2h-2v5h2v2h-2v5h2v2h-2v6h2v2h-2v7h15c1.10156,0 2,-0.89844 2,-2v-34c0,-1.10156 -0.89844,-2 -2,-2zM36,13h8v2h-8zM6.6875,15.6875h5.125l2.6875,5.59375c0.21094,0.44141 0.39844,0.98438 0.5625,1.59375h0.03125c0.10547,-0.36328 0.30859,-0.93359 0.59375,-1.65625l2.96875,-5.53125h4.6875l-5.59375,9.25l5.75,9.4375h-4.96875l-3.25,-6.09375c-0.12109,-0.22656 -0.24609,-0.64453 -0.375,-1.25h-0.03125c-0.0625,0.28516 -0.21094,0.73047 -0.4375,1.3125l-3.25,6.03125h-5l5.96875,-9.34375zM36,20h8v2h-8zM36,27h8v2h-8zM36,35h8v2h-8z"></path></g></g></svg>',
         iconSvg:
             '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256"><g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M28.8125,0.03125l-28,5.3125c-0.47266,0.08984 -0.8125,0.51953 -0.8125,1v37.3125c0,0.48047 0.33984,0.91016 0.8125,1l28,5.3125c0.0625,0.01172 0.125,0.03125 0.1875,0.03125c0.23047,0 0.44531,-0.07031 0.625,-0.21875c0.23047,-0.19141 0.375,-0.48437 0.375,-0.78125v-48c0,-0.29687 -0.14453,-0.58984 -0.375,-0.78125c-0.23047,-0.19141 -0.51953,-0.24219 -0.8125,-0.1875zM32,6v7h2v2h-2v5h2v2h-2v5h2v2h-2v6h2v2h-2v7h15c1.10156,0 2,-0.89844 2,-2v-34c0,-1.10156 -0.89844,-2 -2,-2zM36,13h8v2h-8zM6.6875,15.6875h5.125l2.6875,5.59375c0.21094,0.44141 0.39844,0.98438 0.5625,1.59375h0.03125c0.10547,-0.36328 0.30859,-0.93359 0.59375,-1.65625l2.96875,-5.53125h4.6875l-5.59375,9.25l5.75,9.4375h-4.96875l-3.25,-6.09375c-0.12109,-0.22656 -0.24609,-0.64453 -0.375,-1.25h-0.03125c-0.0625,0.28516 -0.21094,0.73047 -0.4375,1.3125l-3.25,6.03125h-5l5.96875,-9.34375zM36,20h8v2h-8zM36,27h8v2h-8zM36,35h8v2h-8z"></path></g></g></svg>',
     },
@@ -373,6 +406,7 @@ const fetchData = async () => {
     try {
         const response = await apiClient.get(`/orderitem/${orderId.value}`, {params});
         if (response.status === 200) {
+            console.log(response.data.data.content);
             console.log(response.data.data.content);
             products.value = response.data.data.content;
             orders.value = response.data.data.content[0];
