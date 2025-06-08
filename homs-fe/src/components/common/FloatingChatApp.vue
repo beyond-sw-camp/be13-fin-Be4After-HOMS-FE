@@ -157,12 +157,10 @@ const inputMessage = ref<string>('');
 const currentUserId = ref<string | null>(null); // Pinia 스토어에서 가져올 사용자 ID
 const chatRooms = ref<any[]>([]); // 백엔드 ChatRoomListDto와 매칭
 const selectedChatRoomId = ref<string | null>(null);
+const currentSubscription = ref<Stomp.Subscription | null>(null); // 현재 활성화된 STOMP 구독 객체 저장
 
 // 컴포넌트 마운트 시 초기화 로직
 onMounted(() => {
-  // Pinia 스토어에서 현재 사용자 ID 가져오기
-  // authStore.user는 Pinia 스토어에 사용자 정보가 저장되어 있다고 가정합니다.
-  // 이 예시에서는 userId를 문자열로 사용합니다.
   if (authStore.isLoggedIn && authStore.user && authStore.user.userId) {
     currentUserId.value = String(authStore.user.userId);
   } else {
@@ -286,10 +284,12 @@ async function createOrEnterRoom(otherUserEmail: string): Promise<void> { // Cha
 
 // 채팅방 선택 시 호출되는 로직
 async function selectChatRoom(id: string): Promise<void> {
-  if (selectedChatRoomId.value === id && stompClient.value && stompClient.value.connected) {
-    return; // 이미 선택된 방이고 웹소켓이 연결되어 있다면 아무것도 하지 않음
+  if (selectedChatRoomId.value === id) {
+    if (stompClient.value && stompClient.value.connected && currentSubscription.value && currentSubscription.value.id.endsWith(id)) {
+      console.log(`이미 채팅방에 연결 및 구독이 되어있습니다. ${id}. 아무 작업도 하지 않습니다.`);
+      return;
+    }
   }
-
   selectedChatRoomId.value = id;
   roomId.value = id; // 현재 활성화된 방 ID 업데이트
   messages.value = []; // 메시지 초기화
@@ -317,7 +317,25 @@ async function loadOldMessages(): Promise<void> {
 // STOMP(WebSocket) 연결을 설정하고, 현재 방을 구독합니다.
 function connectWebSocket(): void {
   if (stompClient.value && stompClient.value.connected) {
-    return; // 이미 연결되어 있으면 다시 연결하지 않음
+    if (currentSubscription.value) {
+        console.log(`Unsubscribing from old topic: ${currentSubscription.value.id}`);
+        currentSubscription.value.unsubscribe();
+        currentSubscription.value = null;
+    }
+
+    if (roomId.value) {
+        currentSubscription.value = stompClient.value.subscribe(`/sub/chat/room/${roomId.value}`, (frame: Stomp.Frame) => {
+            const body = JSON.parse(frame.body);
+            messages.value.push(body);
+            const currentRoom = chatRooms.value.find(room => room.id === roomId.value);
+            if (currentRoom) {
+                currentRoom.lastMessage = body.content;
+            }
+            scrollToBottom();
+        });
+        console.log(`Subscribed/Re-subscribed to /sub/chat/room/${roomId.value} with ID: ${currentSubscription.value.id}`);
+    }
+    return;
   }
 
   // Pinia 스토어에서 현재 accessToken 가져오기 (WebSocket CONNECT 헤더용)
@@ -337,12 +355,11 @@ function connectWebSocket(): void {
   stompClient.value.debug = null; // Stompjs의 디버그 메시지 비활성화 (선택 사항)
 
   stompClient.value.connect(
-    { Authorization: `Bearer ${currentAccessToken}` }, // JWT 토큰을 CONNECT 헤더에 포함
+    { Authorization: `Bearer ${currentAccessToken}` },
     () => {
       console.log(`WebSocket 연결 성공! Room ID: ${roomId.value}`);
-      // 해당 채팅방을 구독하여 실시간 메시지를 받습니다.
-      if (roomId.value) { // roomId가 null이 아님을 확인
-        stompClient.value?.subscribe(`/sub/chat/room/${roomId.value}`, (frame: Stomp.Frame) => {
+      if (stompClient.value && stompClient.value.connected && roomId.value) {
+        currentSubscription.value = stompClient.value.subscribe(`/sub/chat/room/${roomId.value}`, (frame: Stomp.Frame) => {
           const body = JSON.parse(frame.body);
           messages.value.push(body);
           const currentRoom = chatRooms.value.find(room => room.id === roomId.value);
@@ -351,25 +368,47 @@ function connectWebSocket(): void {
           }
           scrollToBottom();
         });
+        console.log(`Subscribed to /sub/chat/room/${roomId.value} with ID: ${currentSubscription.value.id}`);
+      } else {
+          console.warn('WebSocket connection successful, but not ready for subscription. Retrying or checking state needed.');
       }
     },
     (error: any) => {
       console.error('WebSocket 연결 실패:', error);
       alert('채팅 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
-      isOpen.value = false; // WebSocket 연결 실패 시 채팅창 닫기
+      isOpen.value = false;
       localStorage.setItem(CHAT_WINDOW_STATE_KEY, 'false');
+      stompClient.value = null;
+      currentSubscription.value = null;
     }
   );
 }
 
 // STOMP(WebSocket) 연결을 해제합니다.
-function disconnectWebSocket(): void {
-  if (stompClient.value && stompClient.value.connected) {
-    stompClient.value.disconnect(() => {
-      console.log('STOMP 연결 해제됨');
-      stompClient.value = null;
-    });
+async function disconnectWebSocket(): Promise<void> {
+  // 현재 구독이 있다면 명시적으로 해제
+  if (currentSubscription.value) {
+    console.log(`Explicitly unsubscribing from topic: ${currentSubscription.value.id}`);
+    currentSubscription.value.unsubscribe();
+    currentSubscription.value = null; // 구독 객체 초기화
   }
+
+  // STOMP 클라이언트가 연결되어 있다면 해제
+  if (stompClient.value && stompClient.value.connected) {
+    console.log('STOMP 연결 해제 중...');
+    // Disconnect는 비동기 작업이므로 Promise로 감싸서 사용
+    return new Promise((resolve) => {
+      stompClient.value?.disconnect(() => {
+        console.log('STOMP 연결 해제됨');
+        stompClient.value = null; // 클라이언트 참조를 즉시 null로 설정
+        resolve(); // 연결 해제 완료 후 Promise를 resolve
+      });
+    });
+  } else if (stompClient.value) { 
+      console.log('STOMP 클라이언트가 연결되지 않은 상태에서 정리');
+      stompClient.value = null; // 연결되지 않은 상태에서도 클라이언트 참조를 null로 설정
+  }
+  return Promise.resolve(); // 연결이 없을 때는 즉시 resolve
 }
 
 // 메시지를 전송합니다.
