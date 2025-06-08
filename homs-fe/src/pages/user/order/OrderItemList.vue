@@ -219,6 +219,7 @@ const claimBtn = async (product) => {
     selectedProduct.value = product;
     console.log(product.productId);
     console.log(selectedProduct.value);
+    console.log(selectedProduct.value.productId);
     selectedId.value = product.productId;
     modalText.value = "교환 요청 하시겠습니까?";
     currentActionType.value = "approve";
@@ -578,14 +579,25 @@ async function orderConfirm(delivery, dueDate) {
 async function claimConfirm(option, inputValue) {
     if (currentActionType.value === "approve") {
         try {
-            const params = {
+            const claimParams = {
                 orderId: orderId.value,
                 productId: selectedId.value,
                 reason: option,
                 details: inputValue,
                 status: "EXCHANGE",
             };
-            await apiClient.post(`/claim/`, params);
+            await apiClient.post(`/claim/`, claimParams);
+
+            const childParams = {
+                product: {
+                    productId: selectedProduct.value.productId,
+                    quantity: selectedProduct.value.productQuantity,
+                },
+                approved: permission.value,
+                orderId: selectedProduct.value.orderId,
+            };
+            await apiClient.post(`/order/child`, childParams);
+
             alert("신청이 완료되었습니다!");
             fetchData();
         } catch (error) {
