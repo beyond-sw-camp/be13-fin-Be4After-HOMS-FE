@@ -3,7 +3,7 @@
         <div class="absolute inset-0 bg-gray-900 opacity-60"></div>
         <div class="relative bg-white shadow-lg w-2xl max-w-5xl text-left z-10 pb-5">
             <div class="flex justify-end bg-slate-700 text-xl font-semibold mb-4 p-2">
-                <img :src="xmark" alt="엑스마크" class="w-5 h-5 cursor-pointer" @click="handleCancel" />
+                <img :src="xmark" alt="엑스마크" class="w-5 h-5 cursor-pointer" @click="cancleBtn" />
             </div>
             <div class="flex flex-col px-8 pt-5">
                 <div class="flex justify-between mb-5 pl-4.5 pr-4.5">
@@ -64,11 +64,11 @@
             <div v-if="authStore.isAdmin && claimData.status === 'EXCHANGE'" class="pt-3 flex justify-center">
                 <button @click="handleConfirm(claimData.claimId)"
                     class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2 cursor-pointer">승인</button>
-                <button @click="handleCancel"
-                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">취소</button>
+                <button @click="handleCancel(claimData.claimId)"
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">거절</button>
             </div>
             <div v-else class="pt-3 flex justify-center">
-                <button @click="handleCancel"
+                <button @click="cancleBtn"
                     class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm cursor-pointer">확인</button>
             </div>
         </div>
@@ -93,12 +93,16 @@ const emit = defineEmits(["update:visible", "confirm", "cancel"]);
 const handleConfirm = (claimId) => {
     // onConfirm prop으로 받은 함수를 호출합니다.
     emit("confirm", claimId);
-    console.log(claimId);
     emit("update:visible", false); // 모달 닫기
 };
 
 // 취소 버튼 (및 X 마크)을 누르면 모달 닫고 초기화
-const handleCancel = () => {
+const handleCancel = (claimId) => {
+    emit("cancel", claimId)
     emit("update:visible", false);
 };
+
+const cancleBtn = () => {
+    emit("update:visible", false);
+}
 </script>

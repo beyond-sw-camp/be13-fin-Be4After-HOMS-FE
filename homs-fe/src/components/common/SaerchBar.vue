@@ -106,7 +106,7 @@ const props = defineProps({
   userRole: {
     type: Boolean,
     default: false // 기본값은 false
-  }
+  },
 });
 
 // `computed`를 활용해 권한이 있는 버튼만 필터링
@@ -116,7 +116,7 @@ const filteredButtons = computed(() => {
     if (props.userRole === true) {
       return button.allowedRoles && button.allowedRoles.includes('admin'); // 예시: 'admin' 권한만 보이게 설정
     } else if (props.userRole === false){
-      return button.allowedRoles && button.allowedRoles.includes('user'); 
+      return button.allowedRoles && button.allowedRoles.includes('user');
     } else {
       // userRole이 false이면 allowedRoles가 없는 버튼은 항상 보이도록 함
       return !button.allowedRoles;

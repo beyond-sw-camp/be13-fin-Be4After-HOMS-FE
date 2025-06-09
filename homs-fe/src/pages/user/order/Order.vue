@@ -8,7 +8,7 @@
         <!-- 엑셀 업로드 -->
         <input type="file" ref="excelFileInput" @change="excelUpload" style="display: none" accept=".xlsx, .xls" />
         <!-- 테이블 -->
-        <DynamicTable :columns="orderColumns" :items="orders" :showCheckbox="false" :page="currentPage"
+        <DynamicTable :columns="orderColumns" :items="filteredOrders" :showCheckbox="false" :page="currentPage"
             :pageSize="pageSize" :isLoading="isTableLoading" @selected="handleSelectedItems" @row-click="handleRowClick"
             uniqueKey="orderId">
             <!-- 항목 상세 설정 -->
@@ -30,7 +30,7 @@
             <template #cell-productQuantity="{ item }">
                 <div v-if="item && item.productQuantity === null">-</div>
                 <div v-else-if="item && item.productQuantity !== undefined && !item.isEditing">{{ item.productQuantity
-                }}</div>
+                    }}</div>
                 <div v-else-if="item && item.productQuantity !== undefined && item.isEditing">
                     <input type="number"
                         class="rounded mr-2 border-1 border-gray-300 w-15 focus:border-orange-500 focus:outline-none"
@@ -87,7 +87,7 @@ import PageNav from "@/components/common/PageNav.vue";
 import Notify from "@/components/common/modal/NotifyModal.vue";
 import ConfirmModal from "@/components/common/modal/ConfirmModal.vue";
 import {downloadBlob, getFilenameFromHeaders} from "@/utils/fileDownloader";
-import {ref, watch, onMounted} from "vue";
+import {ref, watch, onMounted, computed} from "vue";
 import {useRouter, useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
 import {useAuthStore} from "@/states/auth";
@@ -268,6 +268,18 @@ const confirmModal = async () => {
     }
 };
 
+// DynamicTable에 전달할 필터링된 주문 목록
+const filteredOrders = computed(() => {
+    // 관리자는 발주요청되지 않은 주문은 못봄
+    if(authStore.isAdmin) {
+        return orders.value.filter(item => {
+            return !(item.deliveryName === null && item.dueDate === null);
+        });
+    } else{
+        return orders.value;
+    }
+});
+
 // 데이터 가져오는 함수
 const fetchData = async () => {
     isTableLoading.value = true;
@@ -385,14 +397,6 @@ const excelUpload = async (event) => {
         console.log("파일 업로드 성공:", response.data);
         alert("엑셀 파일이 성공적으로 업로드되었습니다!");
         router.push({name: "OrderItemList", query: {orderId: currentOrderId.value}});
-        const payload = {
-            orderId: orderId,
-            settlementDate: now,
-            texInvoice: `invoce${orderId}`,
-            isSettled: "UNSETTLED",
-        };
-        await apiClient.post(`settlement/${orderId}`, payload);
-
     } catch (error) {
         console.error("파일 업로드 실패:", error);
         if (error.response) {

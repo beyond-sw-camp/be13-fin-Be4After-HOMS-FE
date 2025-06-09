@@ -3,7 +3,8 @@
         <!-- 제목 -->
         <Breadcrumb />
         <!-- 검색바 -->
-        <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :userRole="authStore.isAdmin" />
+        <SearchBox @search="handleSearch" :selectOptions="handleSelectOption" :userRole="authStore.isAdmin"
+            :buttons="filteredActionButtons" />
         <!-- 테이블 -->
         <DynamicTable :columns="orderColumns" :items="orders" :showCheckbox="false" :page="currentPage"
             :pageSize="pageSize" @row-click="handleRowClick" :isLoading="isTableLoading" uniqueKey="orderId">
@@ -14,44 +15,17 @@
                 <p v-else>기타</p>
             </template>
             <template #cell-status="{ item }">
-                <p class="text-red-500" v-if="item.status === 'EXCHANGE'">반품</p>
-                <p class="text-green-500" v-else-if="item.status === 'COMPLETE'">완료</p>
-                <p v-else>취소</p>
-            </template>
-            <template #actions="{ item }">
-                <!-- 관리자는 상태를 설정가능 -->
-                <div v-if="authStore.isAdmin">
-                    <!-- 미승인 상태 -->
-                    <div v-if="item.approved === false && item.rejectReason === null">
-                        <button @click="rejectOrder(item.orderId)"
-                            class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">거부</button>
-                        <button @click="approveOrder(item.orderId)"
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">승인</button>
-                    </div>
-                </div>
-
-                <!-- 사용자는 취소할 수 있음 -->
-                <div v-else>
-                    <button v-if="item.approved === false && item.rejectReason === null"
-                        @click="cancleBtn(item.orderId)"
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        취소
-                    </button>
-                    <button v-else-if="item.approved === false && item.rejectReason !== null"
-                        @click="rejectReasonView(item.orderId)"
-                        class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        사유
-                    </button>
-                </div>
+                <strong class="text-orange-500" v-if="item.status === 'EXCHANGE'">대기</strong>
+                <strong class="text-green-700" v-else-if="item.status === 'COMPLETE'">승인</strong>
+                <strong class="text-red-500" v-else>거부</strong>
             </template>
         </DynamicTable>
-
         <!-- 페이지 네비 -->
-        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage">
-        </PageNav>
+        <PageNav :currentPage="Number(currentPage)" :totalPages="Number(totalPages)" @set-page="handleSetPage" />
+        <ChildOrders :orderList="childOrder" />
         <!-- 알림 모달 -->
         <ClaimModal :visible="showModal" :claimData="claimData" @update:visible="showModal = $event"
-            @confirm="confirmModal" @cancel="showModal = false" />
+            @confirm="claimApproval" @cancel="claimRefusal" />
     </div>
 </template>
 
@@ -61,11 +35,12 @@ import SearchBox from "@/components/common/SaerchBar.vue";
 import DynamicTable from "@/components/common/DynamicTable.vue";
 import PageNav from "@/components/common/PageNav.vue";
 import ClaimModal from "@/components/common/modal/ClaimResponseModal.vue";
-import {ref, watch, onMounted} from "vue";
-import {useRoute} from "vue-router";
+import {ref, watch, onMounted, computed} from "vue";
+import {useRoute,useRouter} from "vue-router";
 import {useI18n} from "vue-i18n";
 import {useAuthStore} from "@/states/auth";
 import Breadcrumb from '@/components/common/Breadcrumb.vue';
+import ChildOrders from '@/pages/user/order/ChildOrders.vue';
 
 const authStore = useAuthStore();
 
@@ -78,6 +53,7 @@ const showModal = ref(false); // 모달 보이기
 const claimData = ref([]); // 클레임 데이터
 
 const route = useRoute();
+const router = useRouter();
 
 const currentOrderId = ref(route.params.orderId || null); // 현재 주문 ID
 const currentPage = ref(1); // 현재 페이지 상태 관리
@@ -88,6 +64,14 @@ const selectedId = ref([]); // 선택된 항목 ID
 
 const searchQuery = ref(""); // 검색어
 const selectOption = ref(""); // 검색 옵션
+
+const orders = ref([]);
+const childOrder = ref([]);
+const orderCode = ref("");
+
+// 추가: EXCHANGE 상태 여부를 저장할 변수
+const hasExchangeStatus = ref(false); // 초기값은 false
+const isEmptyChildOrder = ref(false);
 
 // ------- 검색바 --------
 const handleSearch = (searchData) => {
@@ -100,6 +84,61 @@ const handleSearch = (searchData) => {
 // 검색 필터 목록
 const handleSelectOption = ref([{value: "PRODUCT_NAME", label: "품목"}]);
 
+// 액션 버튼 정의
+const actionButtons = ref([
+    {
+        label: "주문요청",
+        color: "bg-orange-500 hover:bg-orange-700",
+        action: () => cliamOrder(),
+        allowedRoles: ["user"],
+    },
+]);
+
+// 액션 버튼 필터링
+const filteredActionButtons = computed(() => {
+    // hasExchangeStatus가 true이면 빈 배열을 반환하여 액션 버튼을 숨김
+    if (hasExchangeStatus.value && isEmptyChildOrder.value) { // .value로 반응형 값에 접근
+        return [];
+    }
+    if (!isEmptyChildOrder.value) {
+        return [];
+    }
+    // hasExchangeStatus가 false이면 원래의 actionButtons를 반환
+    return actionButtons.value; // .value로 반응형 값에 접근
+});
+
+// 'COMPLETE' 상태의 주문 항목을 필터링하고 API 형식에 맞게 변환하는 함수
+const getCompletedOrderItems = () => {
+    // 1. 'COMPLETE' 상태인 주문 항목만 필터링
+    const completedOrders = orders.value.filter(order => order.status === 'COMPLETE');
+
+    // 2. 필터링된 각 항목을 백엔드가 기대하는 형태로 매핑
+    const productsArray = completedOrders.map(order => ({
+        productId: order.productId,
+        quantity: order.quantity,
+    }));
+
+    return productsArray;
+};
+
+// 클레임에 대한 하위 주문 생성
+async function cliamOrder() {
+    // 'COMPLETE' 상태의 product 배열 가져오기
+    const productsForRequest = getCompletedOrderItems();
+    const childParams = {
+        product: productsForRequest,
+        orderId: currentOrderId.value,
+    };
+    const result = await apiClient.post(`/order/child`, childParams);
+    if (result.status === 200) {
+        // result.data.data
+        router.push({name: "OrderItemList", query: {orderId: result.data.data}});
+    } else {
+        alert(t("errors.fetch_data_failed"));
+    }
+    fetchData();
+}
+
 // ------- 테이블 --------
 const orderColumns = ref([
     {label: "품목", key: "productName"},
@@ -108,9 +147,6 @@ const orderColumns = ref([
     {label: "주문수량", key: "quantity"},
     {label: "상태", key: "status"},
 ]);
-
-const orders = ref([]);
-const orderCode = ref("");
 
 // 데이터 가져오는 함수
 const fetchData = async () => {
@@ -148,6 +184,20 @@ const fetchData = async () => {
             orderCode.value = response.data.data.content[0].orderCode;
             console.log(response.data.data);
             totalPages.value = response.data.data.page.totalPages; // 총 페이지 수 할당
+
+            hasExchangeStatus.value = orders.value.some(order => order.status === 'EXCHANGE');
+            console.log(hasExchangeStatus.value);
+        } else {
+            alert(t("errors.fetch_data_failed"));
+        }
+
+        //
+        const childOrderResponse = await apiClient.get(`/order/${currentOrderId.value}/children`)
+        if(childOrderResponse.status === 200) {
+            console.log(childOrderResponse.data.data);
+            childOrder.value = childOrderResponse.data.data;
+            console.log(childOrder.value);
+            isEmptyChildOrder.value = (childOrder.value.length === 0);
         } else {
             alert(t("errors.fetch_data_failed"));
         }
@@ -208,10 +258,16 @@ const handleSetPage = (page) => {
 
 // ------ 기타 -------
 
+const claimApproval = (inputValue) => {
+    confirmModal(inputValue,"COMPLETE");
+}
+const claimRefusal = (inputValue) => {
+    confirmModal(inputValue,"CANCEL")
+}
 // 모달의 '승인'' 버튼 클릭 시 호출되는 중앙 함수
-async function confirmModal(inputValue) {
+async function confirmModal(inputValue, status) {
     try {
-        await apiClient.patch(`/claim/${inputValue}/status`, {status: "COMPLETE"});
+        await apiClient.patch(`/claim/${inputValue}/status`, {status: status});
     } catch (error) {
         alert(error.response.data.message);
     }
