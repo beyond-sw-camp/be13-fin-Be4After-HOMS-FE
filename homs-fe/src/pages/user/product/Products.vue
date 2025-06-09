@@ -45,7 +45,8 @@
                 <div v-else>
                     <input type="number"
                         class="rounded mr-2 border-1 border-gray-300 w-24 focus:border-orange-500 focus:outline-none"
-                        min="1" max="9999" v-model.number="item.quantityToOrder" @mousedown.stop />
+                        :min="item.productMinQuantity" max="9999" v-model.number="item.quantityToOrder"
+                        @mousedown.stop />
                     <button @click="orderBtn(item.productId, item.quantityToOrder)"
                         class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded text-sm mr-2">주문
                         추가</button>
@@ -404,7 +405,7 @@ const fetchData = async () => {
             console.log(response.data.data);
             products.value = response.data.data.content.map((item) => ({
                 ...item, // 기존 item의 모든 속성을 복사
-                quantityToOrder: 1, // 각 상품마다 고유한 quantityToOrder 속성 추가 (기본값 1)
+                quantityToOrder: item.productMinQuantity, // 각 상품마다 고유한 quantityToOrder 속성 추가 (기본값 1)
             })); // 응답 데이터 할당
             totalPages.value = response.data.data.page.totalPages; // 총 페이지 수 할당
         } else {
