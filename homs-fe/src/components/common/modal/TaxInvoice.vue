@@ -16,7 +16,7 @@
                     class="flex items-center pl-3 h-full bg-gray-200 border border-gray-300 font-semibold self-center">파트너사명</label>
                 <div class="col-span-2 p-2 border border-gray-300">
                     <input v-model="invoiceForm.companyName" type="text"
-                        class="flex w-1/3 border border-gray-300 text-md" />
+                        class="flex w-1/2 border border-gray-300 text-md" />
                 </div>
 
                 <!-- 사업자 등록번호 -->
@@ -25,7 +25,7 @@
                     등록번호</label>
                 <div class="col-span-2 p-2 border border-gray-300">
                     <input v-model="invoiceForm.companyNumber" type="text" placeholder="000-00-00000"
-                        class="flex w-1/3 border border-gray-300 text-md" />
+                        class="flex w-1/2 border border-gray-300 text-md" />
                 </div>
 
                 <!-- 대표자명 -->
@@ -33,7 +33,7 @@
                     class="flex items-center pl-3 h-full bg-gray-200 border border-gray-300 font-semibold self-center">대표자명</label>
                 <div class="col-span-2 p-2 border border-gray-300">
                     <input v-model="invoiceForm.ceoName" type="text"
-                        class="flex w-1/3 border border-gray-300 text-md" />
+                        class="flex w-1/2 border border-gray-300 text-md" />
                 </div>
 
                 <!-- 사업장 주소 -->
@@ -42,19 +42,19 @@
                     주소</label>
                 <div class="col-span-2 p-2 border border-gray-300">
                     <input v-model="invoiceForm.companyAdress" type="text"
-                        class="flex w-1/3 border border-gray-300 text-md" />
+                        class="flex w-1/2 border border-gray-300 text-md" />
                 </div>
 
                 <!-- 업태 -->
                 <!-- <label class=" flex items-center pl-3 h-full bg-gray-200 border border-gray-300 font-semibold self-center">업종</label>
             <div class="col-span-2 p-2 border border-gray-300">
-                <input v-model="invoiceForm.typeOfBusiness" type="text" class="flex w-1/3 border border-gray-300 text-md">
+                <input v-model="invoiceForm.typeOfBusiness" type="text" class="flex w-1/2 border border-gray-300 text-md">
             </div> -->
 
                 <!-- 종류 -->
                 <!-- <label class=" flex items-center pl-3 h-full bg-gray-200 border border-gray-300 font-semibold self-center">종류</label>
             <div class="col-span-2 p-2 border border-gray-300">
-                <input v-model="invoiceForm.industry" type="text" class="flex w-1/3 border border-gray-300 text-md">
+                <input v-model="invoiceForm.industry" type="text" class="flex w-1/2 border border-gray-300 text-md">
             </div> -->
             </div>
 
@@ -64,6 +64,10 @@
                     <strong>{{ item.id }}</strong>
                 </template>
             </DynamicTable>
+
+            <!-- 페이지 네비 -->
+            <PageNav v-if="totalPages > 3" :currentPage="Number(currentPage)" :totalPages="Number(totalPages)"
+                @set-page="handleSetPage" />
 
             <div class="flex justify-end">
                 <button @click="onIssued"
@@ -76,10 +80,15 @@
 <script setup>
 import xmark from "@/assets/xmark.svg";
 import DynamicTable from "../DynamicTable.vue";
+import PageNav from "@/components/common/PageNav.vue";
 import {ref, reactive, watch} from "vue";
 import apiClient from "@/api";
 
 const isTableLoading = ref(false); // 로딩 상태 관리
+
+const currentPage = ref(1); // 현재 페이지 상태 관리
+const totalPages = ref(0); // 총 페이지 수 상태 관리
+const pageSize = ref(3); // 페이지당 항목 수 (고정값)
 
 const props = defineProps({
     visible: Boolean,
@@ -139,11 +148,7 @@ const orderColumns = ref([
     //   { label: '상태', key: 'orderStatus' },
 ]);
 
-const orderList = ref([
-    {month: 1, day: "23", product: "LDEP", quantity: "100", unitPrice: "12,000", supplyPrice: "120,000", taxPrice: "12,000", orderStatus: "-"},
-    {month: 1, day: "23", product: "LLDP-C", quantity: "10", unitPrice: "2,000", supplyPrice: "20,000", taxPrice: "2,000", orderStatus: "-"},
-    {month: 1, day: "23", product: "C-PPLP", quantity: "50", unitPrice: "10,000", supplyPrice: "500,000", taxPrice: "50,000", orderStatus: "-"},
-]);
+const orderList = ref([]);
 
 const fetchData = async () => {
     if (!props.orderId) return;
@@ -160,8 +165,18 @@ const fetchData = async () => {
             companyAdress: companyData.address,
         });
 
-        const orderRes = await apiClient.get(`/settlement/${props.orderId}/orderInfo`);
-        const orderData = orderRes.data.data;
+        // 기본 요청 파라미터
+        const params = {
+            page: currentPage.value - 1, // 현재 페이지 번호 -1 (0 기반 인덱스)
+            size: pageSize.value,
+        };
+
+        const orderRes = await apiClient.get(`/settlement/${props.orderId}/orderInfo`,{
+            params: params,
+        });
+        const orderData = orderRes.data.data.content;
+        totalPages.value = orderRes.data.data.page.totalPages;
+
         console.log("주문별 주문상품 조회", orderData);
         orderList.value = orderData.map((item) => ({
             month: new Date(item.orderDate).getMonth(),
@@ -178,10 +193,21 @@ const fetchData = async () => {
     }
 };
 
+// ------- 페이지네이션 --------
+const handleSetPage = (page) => {
+    if (currentPage.value === page) return;
+
+    currentPage.value = page;
+};
+
 watch(
-    () => props.orderId,
-    (newVal) => {
-        if (newVal) fetchData();
-    }
+    [() => props.orderId, currentPage],
+    ([newOrderId, newCurrentPage], [oldOrderId, oldCurrentPage]) => {
+        // orderId가 변경되었거나, currentPage가 변경되었을 때 데이터를 다시 가져옴
+        if (newOrderId || (newOrderId === oldOrderId && newCurrentPage !== oldCurrentPage)) {
+            fetchData();
+        }
+    },
+    { immediate: true } // 컴포넌트 마운트 시점에 orderId가 이미 있을 경우 즉시 실행
 );
 </script>

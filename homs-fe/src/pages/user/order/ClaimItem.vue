@@ -131,8 +131,10 @@ async function cliamOrder() {
     };
     const result = await apiClient.post(`/order/child`, childParams);
     if (result.status === 200) {
-        // result.data.data
-        router.push({name: "OrderItemList", query: {orderId: result.data.data}});
+        const orderId = result.data.data;
+        // 부모 주문의 배송상태를 회수로 바꿈
+        apiClient.put(`order/${orderId}/status?requestStatus=COLLECT`)
+        router.push({name: "OrderItemList", query: {orderId: orderId}});
     } else {
         alert(t("errors.fetch_data_failed"));
     }
