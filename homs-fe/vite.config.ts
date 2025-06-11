@@ -17,4 +17,8 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  define: {
+    // "global"이라는 식별자가 나오면 브라우저의 window로 바꿔라
+    global: 'window'
+  },
 })

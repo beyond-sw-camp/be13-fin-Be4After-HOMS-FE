@@ -1,4 +1,60 @@
 {
-  "message": "이건 한국어로 메세지",
-  "hello": "안녕하세요"
+  "login": "로그인",
+  "logout": "로그아웃",
+  "saveId": "아이디 저장",
+  "resetPassword": "비밀번호 초기화",
+  "register": "파트너사 등록",
+  "setting": "설정",
+
+  "title": {
+    "notice": "공지사항",
+    "product": "상품"
+  },
+
+  "data": {
+    "no": "순번",
+    "title": "제목",
+    "content": "내용",
+    "createAt": "등록일",
+    "updateAt": "수정일"
+  },
+
+  "btn": {
+    "add": "추가",
+    "create": "생성",
+    "edit": "수정",
+    "del": "삭제",
+    "list": "목록",
+    "save": "저장",
+    "submit": "제출",
+    "upload": "업로드",
+    "cancel": "취소"
+  },
+
+  "all": "전체",
+
+  "script": {
+    "delete": "정말로 삭제하시겠습니까?"
+  },
+
+  "messages": {
+    "created_successfully": "{itemName}이(가) 생성되었습니다.",
+    "updated_successfully": "{itemName}이(가) 수정되었습니다.",
+    "deleted_successfully": "{itemName}이(가) 삭제되었습니다.",
+    "item_saved": "{itemName}이(가) 저장되었습니다.",
+    "item_submitted": "{itemName}이(가) 제출되었습니다.",
+    "file_uploaded": "{fileName} 파일이 업로드되었습니다.",
+    "error_occurred_with_item": "{itemName} 처리 중 오류가 발생했습니다."
+  },
+
+  "placeholder": {
+    "title_input": "제목을 입력하세요",
+    "content_input": "내용을 입력하세요",
+    "search_keyword": "검색어를 입력하세요"
+  },
+
+  "errors": {
+    "fetch_data_failed": "데이터를 불러오는 데 실패했습니다.",
+    "fetch_data_error": "데이터를 불러오는 중 오류가 발생했습니다."
+  }
 }
